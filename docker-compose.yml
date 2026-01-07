@@ -1,9 +1,8 @@
 version: '3.8'
 
 services:
-  # bd
   db:
-    image: postgres
+    image: postgres:15-alpine
     container_name: ft-postgres
     restart: always
     environment:
@@ -14,26 +13,100 @@ services:
       - "5433:5432"
     volumes:
       - fasttasker_data:/var/lib/postgresql/data
+    networks:
+      - fasttasker-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U back_fast_tasker -d fast_tasker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # backend (monolithic)
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ft-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: fast_tasker_user
+      RABBITMQ_DEFAULT_PASS: RabbitFastTasker-123
+      RABBITMQ_DEFAULT_VHOST: /fast-tasker
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - fasttasker-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./monolith-app
     container_name: ft-backend
+    restart: always
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       DB_URL: jdbc:postgresql://db:5432/fast_tasker
+      DB_USERNAME: back_fast_tasker
+      DB_PASSWORD: Fasttaskerbackpassword-123666
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: fast_tasker_user
+      RABBITMQ_PASSWORD: RabbitFastTasker-123
+      RABBITMQ_VHOST: /fast-tasker
+    networks:
+      - fasttasker-network
 
-  #client
+  notification-service:
+    build: ./fast-tasker-notification
+    container_name: ft-notification-service
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/fast_tasker
+      DB_USERNAME: back_fast_tasker
+      DB_PASSWORD: Fasttaskerbackpassword-123666
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: fast_tasker_user
+      RABBITMQ_PASSWORD: RabbitFastTasker-123
+      RABBITMQ_VHOST: /fast-tasker
+      SERVER_PORT: 8081
+    networks:
+      - fasttasker-network
+
   client:
     build: ./client
     container_name: ft-client
+    restart: always
     ports:
       - "3000:3000"
     depends_on:
       - backend
+      - notification-service
+    networks:
+      - fasttasker-network
 
 volumes:
   fasttasker_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  fasttasker-network:
+    driver: bridge

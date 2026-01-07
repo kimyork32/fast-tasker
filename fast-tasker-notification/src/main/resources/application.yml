@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: fast-tasker-notification
+  
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/fast_tasker}
+    username: ${DB_USERNAME:back_fast_tasker}
+    password: ${DB_PASSWORD:Fasttaskerbackpassword-123666}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:fast_tasker_user}
+    password: ${RABBITMQ_PASSWORD:RabbitFastTasker-123}
+    virtual-host: ${RABBITMQ_VHOST:/fast-tasker}
+    listener:
+      simple:
+        acknowledge-mode: auto
+        retry:
+          enabled: true
+          initial-interval: 3000
+          max-attempts: 3
+          max-interval: 10000
+          multiplier: 2
+
+server:
+  port: ${SERVER_PORT:8081}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.fasttasker.notification: DEBUG
+    org.springframework.amqp: DEBUG
+
+notification:
+  queue:
+    name: notification.queue
+    exchange: notification.exchange
+    routing-key: notification.routing.key
+  websocket:
+    endpoint: /ws
+    topic: /topic/notifications
