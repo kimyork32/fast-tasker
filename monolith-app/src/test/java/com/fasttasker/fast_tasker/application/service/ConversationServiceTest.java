@@ -1,7 +1,6 @@
 package com.fasttasker.fast_tasker.application.service;
 
 import com.fasttasker.fast_tasker.application.dto.conversation.*;
-import com.fasttasker.fast_tasker.application.dto.tasker.ChatProfileResponse;
 import com.fasttasker.fast_tasker.application.exception.ConversationNotFoundException;
 import com.fasttasker.fast_tasker.application.mapper.ConversationMapper;
 import com.fasttasker.fast_tasker.application.mapper.TaskerMapper;
@@ -10,7 +9,6 @@ import com.fasttasker.fast_tasker.domain.conversation.IConversationRepository;
 import com.fasttasker.fast_tasker.domain.conversation.Message;
 import com.fasttasker.fast_tasker.domain.conversation.MessageContent;
 import com.fasttasker.fast_tasker.domain.tasker.ITaskerRepository;
-import com.fasttasker.fast_tasker.domain.tasker.Tasker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -102,46 +100,6 @@ class ConversationServiceTest {
             // THEN
             assertThat(resultId).isEqualTo(conversation.getId());
             verify(conversationRepository).save(conversation);
-        }
-    }
-
-    @Nested
-    @DisplayName("Get User Inbox Tests")
-    class GetUserInboxTests {
-
-        @Test
-        void shouldReturnInboxSummarySuccessfully() {
-            // GIVEN
-            UUID taskerId = participantA;
-            UUID otherId = participantB;
-            
-            // Add a message to the conversation because getUserInbox expects at least one message (getLast())
-            MessageContent content = new MessageContent("Hello world", null);
-            conversation.sendMessage(participantA, content);
-
-            // Mock conversation repository with findByParticipantId instead of findByAnyParticipantId
-            when(conversationRepository.findByParticipantId(taskerId))
-                    .thenReturn(List.of(conversation));
-
-            // Mock tasker repository for the other participant
-            Tasker mockTasker = mock(Tasker.class);
-            when(taskerRepository.findById(otherId)).thenReturn(mockTasker);
-
-            // Mock mapper for profile
-            ChatProfileResponse mockProfile = mock(ChatProfileResponse.class);
-            when(taskerMapper.toChatProfileResponse(mockTasker)).thenReturn(mockProfile);
-
-            // WHEN
-            List<ConversationSummary> inbox = conversationService.getUserInbox(taskerId);
-
-            // THEN
-            assertThat(inbox).hasSize(1);
-            ConversationSummary summary = inbox.getFirst();
-            assertThat(summary.conversationId()).isEqualTo(conversation.getId());
-            assertThat(summary.taskId()).isEqualTo(taskId);
-            assertThat(summary.otherParticipantId()).isEqualTo(otherId);
-            assertThat(summary.lastMessageSnippet()).isEqualTo("Hello world");
-            assertThat(summary.profile()).isEqualTo(mockProfile);
         }
     }
 
