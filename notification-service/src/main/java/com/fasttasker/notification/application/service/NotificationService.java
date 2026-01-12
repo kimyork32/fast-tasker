@@ -1,14 +1,11 @@
 package com.fasttasker.notification.application.service;
 
-import com.fasttasker.notification.application.dto.NotificationRequest;
 import com.fasttasker.notification.application.dto.NotificationResponse;
 import com.fasttasker.notification.application.mapper.NotificationMapper;
-import com.fasttasker.notification.config.NotificationRabbitMQConfig;
 import com.fasttasker.notification.domain.INotificationRepository;
 import com.fasttasker.notification.domain.Notification;
 import com.fasttasker.notification.domain.NotificationType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -29,10 +26,7 @@ public class NotificationService {
         this.notificationMapper = notificationMapper;
     }
 
-    @RabbitListener(queues = NotificationRabbitMQConfig.QUEUE_NAME)
-    public void handleNotification(NotificationRequest request) {
-        sendNotification(request.getReceiverTaskerId(), request.getTargetId(), request.getType());
-    }
+    // handle notification here
 
     /**
      * @param receiverTaskerId tasker that receive notification
@@ -51,10 +45,7 @@ public class NotificationService {
         Notification savedNotification = notificationRepository.save(notification);
 
         log.info("convertAndSend (Topic): {}", receiverTaskerId.toString());
-        messagingTemplate.convertAndSend(
-                "/topic/notifications/" + receiverTaskerId,
-                notificationMapper.toNotificationResponse(savedNotification)
-        );
+        // send here. rabbitmq
     }
 
     /**
