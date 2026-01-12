@@ -1,6 +1,6 @@
 package com.fasttasker.fast_tasker.persistence.repository;
 
-import com.fasttasker.fast_tasker.application.exception.AccountNotFoundException;
+import com.fasttasker.common.exception.AccountNotFoundException;
 import com.fasttasker.fast_tasker.domain.account.Account;
 import com.fasttasker.fast_tasker.domain.account.IAccountRepository;
 import com.fasttasker.fast_tasker.persistence.jpa.JpaAccountRepository;
