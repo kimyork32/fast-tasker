@@ -26,7 +26,10 @@ public class NotificationService {
         this.notificationMapper = notificationMapper;
     }
 
-    // handle notification here
+    @RabbitListener(queues = NotificationRabbitMQConfig.QUEUE_NAME)
+    public void handleNotification(NotificationRequest request) {
+        sendNotification(request.getReceiverTaskerId(), request.getTargetId(), request.getType());
+    }
 
     /**
      * @param receiverTaskerId tasker that receive notification
