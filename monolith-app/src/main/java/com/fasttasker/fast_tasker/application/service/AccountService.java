@@ -1,12 +1,16 @@
 package com.fasttasker.fast_tasker.application.service;
 
+import com.fasttasker.common.config.RabbitMQConfig;
+import com.fasttasker.common.constant.RabbitMQConstants;
+import com.fasttasker.common.exception.EmailAlreadyExistsException;
 import com.fasttasker.fast_tasker.application.dto.account.AccountResponse;
 import com.fasttasker.fast_tasker.application.dto.account.LoginRequest;
 import com.fasttasker.fast_tasker.application.dto.account.LoginResponse;
+import com.fasttasker.fast_tasker.application.dto.notification.NotificationRequest;
 import com.fasttasker.fast_tasker.application.dto.account.RegisterAccountRequest;
 import com.fasttasker.fast_tasker.application.exception.*;
 import com.fasttasker.fast_tasker.application.mapper.AccountMapper;
-import com.fasttasker.fast_tasker.config.JwtService;
+import com.fasttasker.common.config.JwtService;
 import com.fasttasker.fast_tasker.domain.account.*;
 import com.fasttasker.fast_tasker.domain.notification.NotificationType;
 import com.fasttasker.fast_tasker.domain.task.ITaskRepository;
@@ -15,6 +19,7 @@ import com.fasttasker.fast_tasker.domain.task.TaskStatus;
 import com.fasttasker.fast_tasker.domain.tasker.ITaskerRepository;
 import com.fasttasker.fast_tasker.domain.tasker.Tasker;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,7 +35,7 @@ public class AccountService {
     private final ITaskerRepository taskerRepository;
     private final ITaskRepository taskRepository;
     private final AccountMapper accountMapper;
-    private final NotificationService notificationService;
+    private final RabbitTemplate rabbitTemplate;
 
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -39,13 +44,13 @@ public class AccountService {
             IAccountRepository accountRepository,
             ITaskerRepository taskerRepository,
             ITaskRepository taskRepository,
-            AccountMapper accountMapper, NotificationService notificationService,
+            AccountMapper accountMapper, RabbitTemplate rabbitTemplate,
             PasswordEncoder passwordEncoder, JwtService jwtService
     ) {
         this.accountRepository = accountRepository;
         this.taskerRepository = taskerRepository;
         this.taskRepository = taskRepository;
-        this.notificationService = notificationService;
+        this.rabbitTemplate = rabbitTemplate;
         this.accountMapper = accountMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -75,7 +80,21 @@ public class AccountService {
         Tasker savedTasker = taskerRepository.save(defaultTasker);
 
         // notifying of the tasker that your account has been created
-        notificationService.sendNotification(savedTasker.getId(), null, NotificationType.SYSTEM);
+        NotificationRequest notificationRequest = new NotificationRequest(
+                savedTasker.getId(),
+                null,
+                NotificationType.SYSTEM
+        );
+
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE_NAME,
+                    RabbitMQConstants.ROUTING_KEY_NOTIFICATION,
+                    notificationRequest
+            );
+        } catch (Exception e) {
+            log.error("cannot send notification to RabbitMQ: {}", e.getMessage());
+        }
 
         return accountMapper.toResponse(savedAccount);
     }
