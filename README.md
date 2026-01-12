@@ -115,3 +115,40 @@ docker compose down -v
 | **Jenkins** | `http://localhost:8080` | Configure on first launch |
 | **SonarQube** | `http://localhost:9000` | `admin` / `admin` |
 | **Client** | `http://localhost:3000` | - |
+
+## 💻 Developer Guide (Manual Build)
+
+If you need to manually build and run the services without Docker (e.g., for debugging or development), follow these steps.
+
+**Note:** Ensure that the database and RabbitMQ are running (you can use `docker compose up -d db rabbitmq`).
+
+### 1. Install Common Library
+The `common` module is a dependency for other services. It must be installed in your local Maven repository first.
+
+```bash
+cd common
+./mvnw clean install
+cd ..
+```
+
+### 2. Run Monolith App
+```bash
+cd monolith-app
+./mvnw spring-boot:run
+```
+*Or to build the JAR:*
+```bash
+./mvnw clean package
+java -jar target/fast-tasker-0.0.1-SNAPSHOT.jar
+```
+
+### 3. Run Notification Service
+```bash
+cd notification-service
+./mvnw spring-boot:run
+```
+*Or to build the JAR:*
+```bash
+./mvnw clean package
+java -jar target/notification-service-0.0.1-SNAPSHOT.jar
+```
