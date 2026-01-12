@@ -1,0 +1,158 @@
+# bring up bd, rabbit, backend profile (microservices and monolithic), exec: docker compose up -d
+# NOTE: "docker compose up -d" exec only profile "default" (it is not implicitly stated)
+# if you only want to up the db and RabbitMQ, exec: docker compose up -d db rabbitmq
+# bring up only client ("frontend" profile): docker compose --profile frontend up
+# if you want to run the backend, exec: docker compose up -d backend notification-service <other-services>
+# delete containers, volumens and networks, exec: docker compose down -v
+
+services:
+
+  # =====================================
+  # TOOLS
+  # =====================================
+  # bd
+  db:
+    image: postgres:latest
+    container_name: ft-postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=${DB_NAME_MONOLITH}
+      - POSTGRES_USER=${DB_USER} 
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - DB_NAME_NOTIFICATION=${DB_NAME_NOTIFICATION}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - fasttasker_data:/var/lib/postgresql
+      - ./docker-init/init.sh:/docker-entrypoint-initdb.d/init.sh
+
+  # RabbitMQ (Message Broker)
+  rabbitmq:
+      image: rabbitmq:3-management  # "management" include web itnerface
+      container_name: ft-rabbitmq
+      restart: always
+      ports:
+        - "${RABBIT_PORT}:5672"
+        - "${RABBIT_WEB_PORT}:15672" # web manager
+      environment:
+        RABBITMQ_DEFAULT_USER: guest
+        RABBITMQ_DEFAULT_PASS: guest
+      volumes:
+        - rabbitmq_data:/var/lib/rabbitmq # persistence (if the container was restarted)
+
+  # =====================================
+  # OPERATIONS (no production)
+  # =====================================
+  # jenkins
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: ft-jenkins
+    profiles: ["ops"] # operations profile
+    restart: unless-stopped
+    ports:
+      - "${JENKINS_PORT}:8080"   # web
+      - "50000:50000" # agents
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock 
+    user: root
+
+  # sonarqube
+  sonarqube:
+    image: sonarqube:community
+    container_name: ft-sonarqube
+    profiles: ["ops"]
+    restart: unless-stopped
+    ports:
+      - "${SONAR_PORT}:9000"
+    environment:
+      # using H2 for fast test
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+  # =====================================
+  # DEV 
+  # =====================================
+  # backend 
+  # api gateway 
+  api-gateway:
+      build: ./api-gateway
+      container_name: ft-api-gateway
+      ports:
+        - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+      depends_on:
+        - monolith
+        - notification-service
+      environment:
+        # inject
+        - SERVER_PORT=${GATEWAY_PORT}
+        - MONOLITH_URI=${MONOLITH_URI}
+        - MONOLITH_PORT=${MONOLITH_PORT}
+        - NOTIFICATION_URI=${NOTIFICATION_URI}
+        - NOTIFICATION_PORT=${NOTIFICATION_PORT}
+        - WEBSOCKET_URI=${WEBSOCKET_URI}
+        - WEBSOCKET_PORT=${WEBSOCKET_PORT}
+        - CLIENT_URL=${CLIENT_URL}
+        - CLIENT_PORT=${CLIENT_PORT}
+
+  # monolithic
+  monolith:
+    build: ./monolith-app
+    container_name: ft-monolith
+    ports:
+      - "${MONOLITH_PORT}:${MONOLITH_PORT}"
+    depends_on:
+      - db
+      - rabbitmq
+    environment:
+      - DB_URL=${DB_URL_INT}/${DB_NAME_MONOLITH}
+      # inject
+      - DB_USERNAME=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=${RABBIT_PORT}
+      - RABBIT_USER=${RABBIT_USER}
+      - RABBIT_PASSWORD=${RABBIT_PASSWORD}
+
+  # service
+  notification-service:
+    build: ./notification-service
+    container_name: ft-notification-service
+    ports:
+      - "${NOTIFICATION_PORT}:${NOTIFICATION_PORT}"
+    depends_on:
+      - db
+      - rabbitmq
+    environment: 
+      # inject
+      - SERVER_PORT=${NOTIFICATION_PORT}
+      - DB_URL=${DB_URL_INT}/${DB_NAME_NOTIFICATION} # using the db for this service, not of the monolith
+      - DB_USERNAME=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=${RABBIT_PORT}
+      - RABBIT_USER=${RABBIT_USER}
+      - RABBIT_PASSWORD=${RABBIT_PASSWORD}
+
+  # up only client ("frontend" profile): docker-compose --profile frontend up
+  #client (nextjs)
+  client:
+    profiles: ["frontend"]  
+    build:
+      context: ../fasttasker-client
+    ports:
+      - "${CLIENT_PORT}:${CLIENT_PORT}"
+    volumes:
+      - ../fasttasker-client:/app
+      - /app/node_modules
+
+volumes:
+  fasttasker_data:
+  rabbitmq_data:
+  jenkins_home:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
