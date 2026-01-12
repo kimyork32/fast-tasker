@@ -48,7 +48,11 @@ public class NotificationService {
         Notification savedNotification = notificationRepository.save(notification);
 
         log.info("convertAndSend (Topic): {}", receiverTaskerId.toString());
-        // send here. rabbitmq
+        messagingTemplate.convertAndSend(
+                "/topic/notifications/" + receiverTaskerId,
+                notificationMapper.toNotificationResponse(savedNotification)
+        );
+
     }
 
     /**
