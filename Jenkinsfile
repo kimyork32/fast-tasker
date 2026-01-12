@@ -33,6 +33,10 @@ pipeline {
                             steps {
                                 cleanWs()
                                 unstash 'source-code' 
+                                // build and install 'common' project
+                                dir('common') {
+                                    sh 'mvn clean install -DskipTests'
+                                }
                                 dir('monolith-app') {
                                     sh 'rm -rf .scannerwork target'
                                     withSonarQubeEnv('sonar-server') {
@@ -49,7 +53,11 @@ pipeline {
                             steps {
                                 cleanWs()
                                 unstash 'source-code'
-                                dir('fast-tasker-notification') {
+                                // build and install 'common' project
+                                dir('common') {
+                                    sh 'mvn clean install -DskipTests'
+                                }
+                                dir('notification-service') {
                                     sh 'rm -rf .scannerwork target'
                                     withSonarQubeEnv('sonar-server') {
                                         sh 'mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-notification -Dsonar.ws.timeout=300'
