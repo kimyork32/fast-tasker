@@ -1,0 +1,99 @@
+# Global Ignore File for fast-tasker-backend-tmp
+
+# Build artifacts
+**/build/
+**/out/
+**/target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.class
+
+# Logs
+*.log
+hs_err_pid*
+replay_pid*
+
+# IntelliJ IDEA IDE
+.idea/
+!/.idea/runConfigurations
+!/.idea/codeStyles
+!/.idea/inspectionProfiles
+!/.idea/copyright
+!/.idea/vcs.xml
+!/.idea/encodings.xml
+!/.idea/compiler.xml
+!/.idea/jarRepositories.xml
+!/.idea/gradle.xml
+!/.idea/libraries
+!/.idea/modules.xml
+!*.iml
+!*.ipr
+!*.iws
+
+# VS Code IDE
+.vscode/
+!/.vscode/settings.json
+!/.vscode/tasks.json
+!/.vscode/launch.json
+!/.vscode/extensions.json
+!/.vscode/*.code-snippets
+.history/
+
+# STS (Spring Tool Suite) / Eclipse IDE
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# NetBeans IDE
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Environment variables
+.env
+.env.local
+
+# Gradle
+.gradle/
+!gradle-wrapper.jar
+!gradlew
+!gradlew.bat
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Sonar Scanner
+sonar-project.properties
+
+# Specific files
+HELP.md
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Other temporary files
+*.bak
+*.swp
