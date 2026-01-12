@@ -1,10 +1,15 @@
-package com.fasttasker.fast_tasker.application.service;
+package com.fasttasker.fast_tasker.application;
 
-import com.fasttasker.fast_tasker.application.dto.conversation.*;
+import com.fasttasker.fast_tasker.application.dto.conversation.ConversationRequest;
+import com.fasttasker.fast_tasker.application.dto.conversation.ConversationSummary;
+import com.fasttasker.fast_tasker.application.dto.conversation.MessageContentRequest;
+import com.fasttasker.fast_tasker.application.dto.conversation.MessageRequest;
+import com.fasttasker.fast_tasker.application.dto.conversation.MessageResponse;
 import com.fasttasker.fast_tasker.application.dto.tasker.ChatProfileResponse;
 import com.fasttasker.fast_tasker.application.exception.ConversationNotFoundException;
 import com.fasttasker.fast_tasker.application.mapper.ConversationMapper;
 import com.fasttasker.fast_tasker.application.mapper.TaskerMapper;
+import com.fasttasker.fast_tasker.application.service.ConversationService;
 import com.fasttasker.fast_tasker.domain.conversation.Conversation;
 import com.fasttasker.fast_tasker.domain.conversation.IConversationRepository;
 import com.fasttasker.fast_tasker.domain.conversation.Message;
@@ -28,7 +33,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,12 +66,7 @@ class ConversationServiceTest {
         taskId = UUID.randomUUID();
         participantA = UUID.randomUUID();
         participantB = UUID.randomUUID();
-        // Use builder as per user preference for "what I have so far"
-        conversation = Conversation.builder()
-                .taskId(taskId)
-                .participantA(participantA)
-                .participantB(participantB)
-                .build();
+        conversation = new Conversation(taskId, participantA, participantB);
     }
 
     @Nested
@@ -266,7 +265,7 @@ class ConversationServiceTest {
             // GIVEN
             UUID conversationId = UUID.randomUUID();
             MessageRequest messageRequest = new MessageRequest(conversationId, new MessageContentRequest("text", null));
-
+            
             when(conversationRepository.findById(conversationId)).thenReturn(Optional.empty());
 
             // WHEN & THEN

@@ -1,4 +1,4 @@
-package com.fasttasker.fast_tasker.application.service;
+package com.fasttasker.fast_tasker.application;
 
 import com.fasttasker.fast_tasker.application.dto.task.*;
 import com.fasttasker.fast_tasker.application.dto.tasker.*;
