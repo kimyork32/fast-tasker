@@ -60,39 +60,48 @@ public class ConversationService {
 
     /**
      * get tasker's inbox
-     * @param taskerId user id
+     * @param accountId user id
      * @return list of conversations
      */
     @Transactional(readOnly = true)
     public List<ConversationSummary> getUserInbox(UUID taskerId) {
 
         log.info("taskerId: {}", taskerId);
-        return conversationRepository.findByParticipantId(taskerId).stream()
-                .map(c -> {
-                    // calculate other id
-                    UUID otherId = c.otherParticipantId(taskerId);
 
-                    // get last messageContent
-                    MessageContent lastMessageContent = c.getMessages().getLast().getContent();
-
-                    // build profile of the tasker for chat
-                    Tasker tasker = taskerRepository.findById(otherId);
-
-                    ChatProfileResponse profile = taskerMapper.toChatProfileResponse(tasker);
-
-                    return ConversationSummary.builder()
-                            .conversationId(c.getId())
-                            .taskId(c.getTaskId())
-                            .otherParticipantId(otherId)
-                            .lastMessageSnippet(lastMessageContent.snippet())
-                            .profile(profile)
-                            .build();
-                })
+        // Refactoring: Use optimized repository query (Move Method) and Extract Method for mapping
+        return conversationRepository.findByAnyParticipantId(taskerId).stream()
+                .map(c -> buildConversationSummary(c, taskerId))
                 .toList();
     }
 
     /**
-     *  get message history
+     * Helper method extracted to map conversation to summary (Extract Method)
+     * and handle potential empty message lists (Simplify Conditional Expressions).
+     */
+    private ConversationSummary buildConversationSummary(Conversation c, UUID taskerId) {
+        // calculate other id
+        UUID otherId = c.otherParticipantId(taskerId);
+
+        // get last messageContent with robustness check (Simplify Conditional)
+        String snippet = c.getMessages().isEmpty() 
+                ? "No messages yet" 
+                : c.getMessages().getLast().getContent().snippet();
+
+        // build profile of the tasker for chat
+        Tasker tasker = taskerRepository.findById(otherId);
+        ChatProfileResponse profile = taskerMapper.toChatProfileResponse(tasker);
+
+        return ConversationSummary.builder()
+                .conversationId(c.getId())
+                .taskId(c.getTaskId())
+                .otherParticipantId(otherId)
+                .lastMessageSnippet(snippet)
+                .profile(profile)
+                .build();
+    }
+
+    /**
+     * get message history
      * @param conversationId conversation id
      * @return list of messages
      */

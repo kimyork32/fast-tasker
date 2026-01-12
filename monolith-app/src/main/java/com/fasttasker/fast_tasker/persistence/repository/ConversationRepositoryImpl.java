@@ -33,9 +33,10 @@ public class ConversationRepositoryImpl implements IConversationRepository {
         return  jpa.findByTaskId(taskId);
     }
 
+    
     @Override
-    public List<Conversation> findByParticipantId(UUID taskId) {
-        return jpa.findByAnyParticipantId(taskId);
+    public List<Conversation> findByAnyParticipantId(UUID userId) { 
+        return jpa.findByAnyParticipantId(userId);
     }
 
     @Override

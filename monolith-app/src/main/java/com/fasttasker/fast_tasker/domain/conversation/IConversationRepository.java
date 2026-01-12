@@ -12,7 +12,7 @@ public interface IConversationRepository {
 
     Optional<Conversation> findByTaskId(UUID taskId);
 
-    List<Conversation> findByParticipantId(UUID taskId);
+    List<Conversation> findByAnyParticipantId(UUID userId);
 
     boolean existsByTaskId(UUID taskId);
 }

@@ -14,9 +14,12 @@ public interface JpaConversationRepository extends JpaRepository<Conversation, U
     Optional<Conversation> findByTaskId(UUID taskId);
 
     boolean existsBytaskId(UUID taskId);
-
-    // the query selects all records where its appears in participantA or participantB
-    // @Query use variable names how column, use "nativeQuery = true" for work how sql native
-    @Query("SELECT c FROM Conversation c WHERE c.participantA = :userId OR c.participantB = :userId")
+    /**
+     * Retrieves all conversations for a specific participant.
+     * Refactoring (Move Method): Implements 'LEFT JOIN FETCH' to resolve the N+1 select problem
+     * by eagerly loading the messages collection in a single database round-trip.
+     */ 
+    
+    @Query("SELECT DISTINCT c FROM Conversation c LEFT JOIN FETCH c.messages WHERE c.participantA = :userId OR c.participantB = :userId")
     List<Conversation> findByAnyParticipantId(@Param("userId") UUID userId);
 }
