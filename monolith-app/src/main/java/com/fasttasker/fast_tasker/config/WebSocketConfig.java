@@ -1,5 +1,6 @@
 package com.fasttasker.fast_tasker.config;
 
+import com.fasttasker.common.config.WebSocketAuthChannelInterceptor;
 import  org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -29,8 +30,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*") // allow connection from any origin
+        registry.addEndpoint("/ws/chat")
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 

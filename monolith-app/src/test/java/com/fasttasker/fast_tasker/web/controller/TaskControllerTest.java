@@ -3,7 +3,7 @@ package com.fasttasker.fast_tasker.web.controller;
 import com.fasttasker.fast_tasker.application.dto.task.*;
 import com.fasttasker.fast_tasker.application.service.TaskService;
 import com.fasttasker.fast_tasker.config.DataSeeder;
-import com.fasttasker.fast_tasker.config.JwtService;
+import com.fasttasker.common.config.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

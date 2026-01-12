@@ -9,7 +9,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "messages")
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
 @ToString(exclude = "conversation")
@@ -61,6 +61,7 @@ public class Message {
             throw new IllegalArgumentException("content cannot be null");
         }
 
+        this.id = UUID.randomUUID();
         this.conversation = conversation;
         this.senderId = senderId;
         this.content = content;

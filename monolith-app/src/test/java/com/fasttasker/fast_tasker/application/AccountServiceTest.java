@@ -1,13 +1,15 @@
-package com.fasttasker.fast_tasker.application.service;
+package com.fasttasker.fast_tasker.application;
 
+import com.fasttasker.common.config.RabbitMQConfig;
+import com.fasttasker.common.constant.RabbitMQConstants;
 import com.fasttasker.fast_tasker.application.dto.account.AccountResponse;
 import com.fasttasker.fast_tasker.application.dto.account.LoginRequest;
 import com.fasttasker.fast_tasker.application.dto.account.LoginResponse;
 import com.fasttasker.fast_tasker.application.dto.account.RegisterAccountRequest;
+import com.fasttasker.fast_tasker.application.dto.notification.NotificationRequest;
 import com.fasttasker.fast_tasker.application.mapper.AccountMapper;
 import com.fasttasker.fast_tasker.application.service.AccountService;
-import com.fasttasker.fast_tasker.application.service.NotificationService;
-import com.fasttasker.fast_tasker.config.JwtService;
+import com.fasttasker.common.config.JwtService;
 import com.fasttasker.fast_tasker.domain.account.*;
 import com.fasttasker.fast_tasker.domain.notification.NotificationType;
 import com.fasttasker.fast_tasker.domain.tasker.ITaskerRepository;
@@ -20,7 +22,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.UUID;
 
@@ -45,8 +49,8 @@ class AccountServiceTest {
     @Mock
     private JwtService jwtService;
     @Mock
-    private NotificationService notificationService;
-
+    private RabbitTemplate rabbitTemplate;
+    
     @InjectMocks
     private AccountService accountService;
 
@@ -92,7 +96,7 @@ class AccountServiceTest {
         assertThat(savedTasker.getAccountId()).isEqualTo(savedAccount.getId());
         assertThat(savedTasker.getProfile()).isNull();
 
-        verify(notificationService).sendNotification(eq(savedTasker.getId()), isNull(), eq(NotificationType.SYSTEM));
+        verify(rabbitTemplate).convertAndSend(eq(RabbitMQConfig.EXCHANGE_NAME), eq(RabbitMQConstants.ROUTING_KEY_NOTIFICATION), any(NotificationRequest.class));
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isNotNull();
