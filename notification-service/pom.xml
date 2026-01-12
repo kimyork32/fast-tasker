@@ -30,19 +30,16 @@
 		<java.version>21</java.version>
 	</properties>
 	<dependencies>
-        <!-- Necesario para @EnableWebSecurity, Authentication, etc. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- Necesario para WebSockets y STOMP -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
-        <!-- Tu librería común (donde vive la lógica de JWT) -->
         <dependency>
             <groupId>com.fasttasker</groupId>
             <artifactId>common</artifactId>
