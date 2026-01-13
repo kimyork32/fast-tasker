@@ -11,6 +11,40 @@ pipeline {
                 stash name: 'source-code', includes: '**' 
             }
         }
+
+        // branch validator 
+        stage('branch validator of the merge') {
+            // only run this if it's a PR
+            when { 
+                changeRequest() 
+            }
+            steps {
+                script {
+                    echo "analyzing PR from '${env.CHANGE_BRANCH}' to '${env.CHANGE_TARGET}'"
+
+                    // rule: any branch except main or staging can be included in 'develop'
+                    if (env.CHANGE_TARGET == 'develop') {
+                        if (env.CHANGE_BRANCH == 'main') {
+                            error "BLOCk!!: 'main' cannot enter 'develop'"
+
+                        }
+                        if (env.CHANGE_BRANCH == 'staging') {
+                            error "BLOCk!!: 'staging' cannot enter 'develop'"
+
+                        }
+                    }
+
+                    // rule: to 'staging' only enters 'develop'
+                    if (env.CHANGE_TARGET == 'staging') {
+                        // if (env.CHANGE_BRANCH != 'develop') {
+                        if (env.CHANGE_BRANCH != 'feat/noti') { // changing this
+                            error "BLOCk!!: to 'staging' enters 'develop'"
+
+                        }
+                    }
+                }
+            }
+        }
         
         // flow DEVELOP
         stage('CI Flow (Develop)') {
