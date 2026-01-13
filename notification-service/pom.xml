@@ -43,7 +43,7 @@
         <dependency>
             <groupId>com.fasttasker</groupId>
             <artifactId>common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1-SNAPSHOT</version> <!-- O la versión que uses -->
         </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -87,7 +87,15 @@
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.12</version>
+        </dependency>
+
+
+    </dependencies>
 
 	<build>
 		<plugins>
@@ -115,8 +123,42 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/NotificationServiceApplicationTests.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>5.3.0.6276</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version> <executions>
+                <execution>
+                    <id>prepare-agent</id>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>report</id>
+                    <phase>test</phase>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                </execution>
+            </executions>
+            </plugin>
 		</plugins>
-	</build>
+    </build>
+
 	<repositories>
 		<repository>
 			<id>spring-snapshots</id>
