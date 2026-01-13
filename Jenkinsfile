@@ -47,7 +47,7 @@ pipeline {
                                             '''
                                         }
                                     }
-                                    // wait for qualitygate
+                                    // wait for qualitygate for monolith
                                     timeout(time: 10, unit: 'MINUTES') {
                                         waitForQualityGate abortPipeline: true
                                     }
@@ -77,7 +77,7 @@ pipeline {
                                         }
 
                                     }
-                                    // wait for qualitygate
+                                    // wait for qualitygate for notification service
                                     timeout(time: 10, unit: 'MINUTES') {
                                         waitForQualityGate abortPipeline: true
                                     }
