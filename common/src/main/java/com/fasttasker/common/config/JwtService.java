@@ -68,7 +68,7 @@ public class JwtService {
             return taskerIdStr != null ? UUID.fromString(taskerIdStr) : null;
         }
 
-        log.warn("Authentication details no son de tipo Claims. Tipo: {}", details != null ? details.getClass().getName() : "null");
+        log.warn("Authentication details are not of type Claims. Type: {}", details != null ? details.getClass().getName() : "null");
         return null;
     }
 

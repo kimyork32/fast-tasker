@@ -1,5 +1,8 @@
 package com.fasttasker.fast_tasker.application.service;
 
+import com.fasttasker.common.config.RabbitMQConfig;
+import com.fasttasker.common.constant.RabbitMQConstants;
+import com.fasttasker.common.exception.EmailAlreadyExistsException;
 import com.fasttasker.fast_tasker.application.dto.account.AccountResponse;
 import com.fasttasker.fast_tasker.application.dto.account.LoginRequest;
 import com.fasttasker.fast_tasker.application.dto.account.LoginResponse;
@@ -8,7 +11,6 @@ import com.fasttasker.fast_tasker.application.dto.account.RegisterAccountRequest
 import com.fasttasker.fast_tasker.application.exception.*;
 import com.fasttasker.fast_tasker.application.mapper.AccountMapper;
 import com.fasttasker.common.config.JwtService;
-import com.fasttasker.fast_tasker.config.RabbitMQConfig;
 import com.fasttasker.fast_tasker.domain.account.*;
 import com.fasttasker.fast_tasker.domain.notification.NotificationType;
 import com.fasttasker.fast_tasker.domain.task.ITaskRepository;
@@ -85,9 +87,13 @@ public class AccountService {
         );
 
         try {
-            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, notificationRequest);
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE_NAME,
+                    RabbitMQConstants.ROUTING_KEY_NOTIFICATION,
+                    notificationRequest
+            );
         } catch (Exception e) {
-            log.error("No se pudo enviar la notificación a RabbitMQ (el servicio puede estar inactivo): {}", e.getMessage());
+            log.error("cannot send notification to RabbitMQ: {}", e.getMessage());
         }
 
         return accountMapper.toResponse(savedAccount);

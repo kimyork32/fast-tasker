@@ -1,5 +1,7 @@
 package com.fasttasker.fast_tasker.application.service;
 
+import com.fasttasker.common.config.RabbitMQConfig;
+import com.fasttasker.common.constant.RabbitMQConstants;
 import com.fasttasker.fast_tasker.application.dto.conversation.ConversationRequest;
 import com.fasttasker.fast_tasker.application.dto.conversation.MessageContentRequest;
 import com.fasttasker.fast_tasker.application.dto.conversation.MessageRequest;
@@ -10,7 +12,6 @@ import com.fasttasker.fast_tasker.application.dto.tasker.TaskerRequest;
 import com.fasttasker.fast_tasker.application.dto.tasker.TaskerResponse;
 import com.fasttasker.fast_tasker.application.exception.TaskAccessDeniedException;
 import com.fasttasker.fast_tasker.application.mapper.TaskerMapper;
-import com.fasttasker.fast_tasker.config.RabbitMQConfig;
 import com.fasttasker.fast_tasker.domain.notification.NotificationType;
 import com.fasttasker.fast_tasker.domain.task.ITaskRepository;
 import com.fasttasker.fast_tasker.domain.task.Task;
@@ -95,6 +96,8 @@ public class TaskerService {
         UUID taskerId = parseUuid(request.taskerId(), "taskerId");
         UUID offerId = parseUuid(request.offerId(), "offerId");
 
+        log.info("taskerId: {}", taskerId);
+
         Task task = taskRepository.findById(taskId);
 
         validatePosterOwnsTask(posterId, task);
@@ -142,11 +145,11 @@ public class TaskerService {
         try {
             rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE_NAME,
-                    RabbitMQConfig.ROUTING_KEY,
+                    RabbitMQConstants.ROUTING_KEY_NOTIFICATION,
                     request
             );
         } catch (Exception e) {
-            log.error("No se pudo enviar la notificación a RabbitMQ: {}", e.getMessage());
+            log.error("cannot send notification to RabbitMQ: {}", e.getMessage());
         }
     }
 

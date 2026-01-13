@@ -1,5 +1,6 @@
 package com.fasttasker.common.config;
 
+import io.jsonwebtoken.Claims;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,9 @@ public class UserAuthenticationProvider {
      */
     public Authentication validateToken(String token) {
         UUID accountId = jwtService.extractAccountId(token);
-        return new UsernamePasswordAuthenticationToken(accountId, null, Collections.emptyList());
+        Claims claims = jwtService.extractAllClaims(token);
+        var auth = new UsernamePasswordAuthenticationToken(accountId, null, Collections.emptyList());
+        auth.setDetails(claims);
+        return auth;
     }
 }

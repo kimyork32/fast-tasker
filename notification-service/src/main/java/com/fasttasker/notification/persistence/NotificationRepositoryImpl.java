@@ -2,7 +2,6 @@ package com.fasttasker.notification.persistence;
 
 import com.fasttasker.notification.domain.INotificationRepository;
 import com.fasttasker.notification.domain.Notification;
-import com.fasttasker.notification.persistence.JpaNotificationRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

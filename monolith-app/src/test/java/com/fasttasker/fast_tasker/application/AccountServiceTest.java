@@ -1,5 +1,7 @@
 package com.fasttasker.fast_tasker.application;
 
+import com.fasttasker.common.config.RabbitMQConfig;
+import com.fasttasker.common.constant.RabbitMQConstants;
 import com.fasttasker.fast_tasker.application.dto.account.AccountResponse;
 import com.fasttasker.fast_tasker.application.dto.account.LoginRequest;
 import com.fasttasker.fast_tasker.application.dto.account.LoginResponse;
@@ -94,7 +96,7 @@ class AccountServiceTest {
         assertThat(savedTasker.getAccountId()).isEqualTo(savedAccount.getId());
         assertThat(savedTasker.getProfile()).isNull();
 
-        verify(rabbitTemplate).convertAndSend(eq("notification.exchange"), eq("notification.routing.key"), any(NotificationRequest.class));
+        verify(rabbitTemplate).convertAndSend(eq(RabbitMQConfig.EXCHANGE_NAME), eq(RabbitMQConstants.ROUTING_KEY_NOTIFICATION), any(NotificationRequest.class));
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isNotNull();

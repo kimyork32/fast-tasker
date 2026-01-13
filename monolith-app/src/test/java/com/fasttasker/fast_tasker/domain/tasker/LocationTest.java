@@ -1,6 +1,6 @@
 package com.fasttasker.fast_tasker.domain.tasker;
 
-import com.fasttasker.fast_tasker.application.exception.DomainException;
+import com.fasttasker.common.exception.DomainException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

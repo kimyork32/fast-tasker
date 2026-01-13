@@ -1,6 +1,5 @@
 package com.fasttasker.notification.persistence;
 
-import com.fasttasker.notification.domain.INotificationRepository;
 import com.fasttasker.notification.domain.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

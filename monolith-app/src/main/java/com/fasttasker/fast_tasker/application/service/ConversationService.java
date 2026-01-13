@@ -151,6 +151,7 @@ public class ConversationService {
         // Only users subscribed to this specific ID will receive the message
         String destination = "/topic/conversation." + messageRequest.conversationId();
 
+        log.info("messageResponse: {}", messageResponse);
         // send JSON to connected clients
         messagingTemplate.convertAndSend(destination, messageResponse);
     }
