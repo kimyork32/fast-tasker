@@ -58,14 +58,14 @@ public class NotificationService {
     }
 
     /**
-     * @param taskerId
+     * @param taskerId user id
      */
     public void getUnread(UUID taskerId) {
         // TODO implement here
     }
 
     /**
-     * @param notificationId
+     * @param notificationId notification id
      */
     public void markAsRead(UUID notificationId) {
         // TODO implement here
