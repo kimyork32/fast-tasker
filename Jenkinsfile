@@ -33,6 +33,10 @@ pipeline {
                             steps {
                                 cleanWs()
                                 unstash 'source-code' 
+                                // build and install 'common' project
+                                dir('common') {
+                                    sh 'mvn clean install -DskipTests'
+                                }
                                 dir('monolith-app') {
                                     sh 'rm -rf .scannerwork target'
                                     withSonarQubeEnv('sonar-server') {
@@ -62,6 +66,10 @@ pipeline {
                             steps {
                                 cleanWs()
                                 unstash 'source-code'
+                                // build and install 'common' project
+                                dir('common') {
+                                    sh 'mvn clean install -DskipTests'
+                                }
                                 dir('notification-service') {
                                     sh 'rm -rf .scannerwork target'
                                     withSonarQubeEnv('sonar-server') {
