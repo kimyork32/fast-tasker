@@ -49,7 +49,7 @@ pipeline {
                             steps {
                                 cleanWs()
                                 unstash 'source-code'
-                                dir('fast-tasker-notification') {
+                                dir('notification-service') {
                                     sh 'rm -rf .scannerwork target'
                                     withSonarQubeEnv('sonar-server') {
                                         sh 'mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-notification -Dsonar.ws.timeout=300'
