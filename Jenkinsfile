@@ -47,6 +47,7 @@ pipeline {
                                             '''
                                         }
                                     }
+                                    // wait for qualitygate
                                     timeout(time: 10, unit: 'MINUTES') {
                                         waitForQualityGate abortPipeline: true
                                     }
@@ -76,6 +77,7 @@ pipeline {
                                         }
 
                                     }
+                                    // wait for qualitygate
                                     timeout(time: 10, unit: 'MINUTES') {
                                         waitForQualityGate abortPipeline: true
                                     }
