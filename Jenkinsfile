@@ -38,7 +38,8 @@ pipeline {
                                     withSonarQubeEnv('sonar-server') {
                                         withCredentials([file(credentialsId: 'fast-tasker-env', variable: 'ENV_FILE')]) {
                                             sh '''
-                                                cp $ENV_FILE .env
+                                                cp $ENV_FILE .env 
+                                                sed -i 's/\r$//' .env
                                                 set -a 
                                                 . ./.env
                                                 set +a
@@ -63,6 +64,7 @@ pipeline {
                                         withCredentials([file(credentialsId: 'fast-tasker-env', variable: 'ENV_FILE')]) {
                                             sh '''
                                                 cp $ENV_FILE .env
+                                                sed -i 's/\r$//' .env
                                                 set -a 
                                                 . ./.env
                                                 set +a
