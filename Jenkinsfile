@@ -40,7 +40,16 @@ pipeline {
                                 dir('monolith-app') {
                                     sh 'rm -rf .scannerwork target'
                                     withSonarQubeEnv('sonar-server') {
-                                        sh 'mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-monolith -Dsonar.ws.timeout=300'
+                                        withCredentials([file(credentialsId: 'fast-tasker-env', variable: 'ENV_FILE')]) {
+                                            sh '''
+                                                cp $ENV_FILE .env 
+                                                sed -i 's/\r$//' .env
+                                                set -a 
+                                                . ./.env
+                                                set +a
+                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-monolith -Dsonar.ws.timeout=300
+                                            '''
+                                        }
                                     }
                                 }
                             }
@@ -60,7 +69,16 @@ pipeline {
                                 dir('notification-service') {
                                     sh 'rm -rf .scannerwork target'
                                     withSonarQubeEnv('sonar-server') {
-                                        sh 'mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-notification -Dsonar.ws.timeout=300'
+                                        withCredentials([file(credentialsId: 'fast-tasker-env', variable: 'ENV_FILE')]) {
+                                            sh '''
+                                                cp $ENV_FILE .env
+                                                sed -i 's/\r$//' .env
+                                                set -a 
+                                                . ./.env
+                                                set +a
+                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-notification -Dsonar.ws.timeout=300
+                                            '''
+                                        }
                                     }
                                 }
                             }
