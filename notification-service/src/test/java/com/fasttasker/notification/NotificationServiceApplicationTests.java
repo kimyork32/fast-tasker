@@ -1,5 +1,7 @@
 package com.fasttasker.notification;
 
+import com.fasttasker.notification.application.service.NotificationService;
+import com.fasttasker.notification.domain.INotificationRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -14,6 +16,12 @@ class NotificationServiceApplicationTests {
 
     @MockBean
     private SimpMessagingTemplate simpMessagingTemplate;
+
+    @MockBean
+    private INotificationRepository notificationRepository;
+
+    @MockBean
+    private NotificationService notificationService;
 
 	@Test
 	void contextLoads() {
