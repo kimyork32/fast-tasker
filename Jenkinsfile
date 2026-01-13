@@ -47,7 +47,10 @@ pipeline {
                                                 set -a 
                                                 . ./.env
                                                 set +a
-                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-monolith -Dsonar.ws.timeout=300
+                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                                                    -Dsonar.projectKey=fast-tasker-monolith \
+                                                    -Dsonar.projectName="Fast Tasker Monolith" \
+                                                    -Dsonar.ws.timeout=300
                                             '''
                                         }
                                     }
@@ -80,7 +83,10 @@ pipeline {
                                                 set -a 
                                                 . ./.env
                                                 set +a
-                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-notification -Dsonar.ws.timeout=300
+                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                                                    -Dsonar.projectKey=fast-tasker-notification \
+                                                    -Dsonar.projectName="Notification Service" \
+                                                    -Dsonar.ws.timeout=300
                                             '''
                                         }
 
