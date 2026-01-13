@@ -47,6 +47,9 @@ pipeline {
                                             '''
                                         }
                                     }
+                                    timeout(time: 10, unit: 'MINUTES') {
+                                        waitForQualityGate abortPipeline: true
+                                    }
                                 }
                             }
                         }
@@ -73,18 +76,11 @@ pipeline {
                                         }
 
                                     }
+                                    timeout(time: 10, unit: 'MINUTES') {
+                                        waitForQualityGate abortPipeline: true
+                                    }
                                 }
                             }
-                        }
-                    }
-                }
-                
-                // listen quality gate from sonarqube
-                stage('Quality Gate') {
-                    agent any 
-                    steps {
-                        timeout(time: 10, unit: 'MINUTES') {
-                            waitForQualityGate abortPipeline: true
                         }
                     }
                 }
