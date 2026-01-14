@@ -161,7 +161,7 @@ pipeline {
                     agent any
                     environment {
                         // Rutas relativas en tu repo
-                        SCRIPT_PATH = 'tests/performance/fasttasker.jmx'
+                        SCRIPT_PATH = 'tests/performance/fasttasker2.jmx'
                         RESULT_PATH = 'tests/performance/result.jtl'
                         REPORT_DIR  = 'tests/performance/report-html'
                         
@@ -179,20 +179,20 @@ pipeline {
                             def jmeterBin = "${jmeterDir}/bin/jmeter"
                             
                             if (!fileExists(jmeterBin)) {
-                                echo "🔧 Instalando JMeter en ${jmeterDir}..."
+                                echo "Instalando JMeter en ${jmeterDir}..."
                                 sh "mkdir -p ${jmeterDir}"
                                 
                                 // Descargamos usando CURL (que sí tienes instalado)
                                 // -L: Seguir redirecciones, -k: Ignorar SSL, -s: Silencioso
                                 sh "curl -Lks https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz | tar -xz -C ${jmeterDir} --strip-components=1"
                                 
-                                echo "✅ JMeter instalado correctamente."
+                                echo "JMeter instalado correctamente."
                             } else {
                                 echo "⚡ Usando JMeter desde caché."
                             }
                             
                             // --- PARTE 2: EJECUCIÓN DEL TEST ---
-                            echo "🚀 Ejecutando prueba de carga..."
+                            echo "Ejecutando prueba de carga..."
                             
                             // TRUCO DE RED: Pasamos la propiedad 'host' a JMeter dinámicamente
                             // Si tu backend está en el host, JMeter usará 'host.docker.internal'
@@ -206,7 +206,7 @@ pipeline {
                                     -e -o ${REPORT_DIR}
                                 """
                             } catch (Exception e) {
-                                echo "⚠️ La prueba terminó con fallos (errores 500/400 o umbrales excedidos)."
+                                echo "La prueba terminó con fallos (errores 500/400 o umbrales excedidos)."
                             }
                         }
                     }

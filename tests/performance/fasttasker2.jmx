@@ -6,6 +6,8 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="HTTP Cookie Manager">
@@ -35,7 +37,7 @@
             <boolProp name="TransactionController.includeTimers">false</boolProp>
           </TransactionController>
           <hashTree>
-            <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="Throughput Controller login">
+            <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="Throughput Controller login" enabled="true">
               <intProp name="ThroughputController.style">1</intProp>
               <boolProp name="ThroughputController.perThread">false</boolProp>
               <intProp name="ThroughputController.maxThroughput">1</intProp>
@@ -47,7 +49,7 @@
             </ThroughputController>
             <hashTree/>
             <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="login request">
-              <stringProp name="HTTPSampler.domain">localhost</stringProp>
+              <stringProp name="HTTPSampler.domain">${__P(host,localhost)}</stringProp>
               <stringProp name="HTTPSampler.port">8081</stringProp>
               <stringProp name="HTTPSampler.protocol">http</stringProp>
               <stringProp name="HTTPSampler.path">api/v1/auth/login</stringProp>
@@ -69,7 +71,7 @@
               </elementProp>
             </HTTPSamplerProxy>
             <hashTree>
-              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
                 <collectionProp name="HeaderManager.headers">
                   <elementProp name="" elementType="Header">
                     <stringProp name="Header.name">Content-Type</stringProp>
@@ -78,13 +80,13 @@
                 </collectionProp>
               </HeaderManager>
               <hashTree/>
-              <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor">
+              <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor" enabled="true">
                 <stringProp name="JSONPostProcessor.referenceNames">jwt_token_json</stringProp>
                 <stringProp name="JSONPostProcessor.jsonPathExprs">$.token</stringProp>
                 <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
               </JSONPostProcessor>
               <hashTree/>
-              <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor">
+              <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="true">
                 <stringProp name="cacheKey">true</stringProp>
                 <stringProp name="filename"></stringProp>
                 <stringProp name="parameters"></stringProp>
@@ -116,15 +118,15 @@ if (token != null &amp;&amp; manager != null) {
             </hashTree>
           </hashTree>
         </hashTree>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <intProp name="LoopController.loops">-1</intProp>
         </LoopController>
         <hashTree>
-          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="protected routes">
+          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="protected routes" enabled="true">
             <boolProp name="TransactionController.includeTimers">false</boolProp>
           </TransactionController>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">Content-Type</stringProp>
@@ -149,7 +151,7 @@ if (token != null &amp;&amp; manager != null) {
             </ThroughputController>
             <hashTree>
               <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="notifications">
-                <stringProp name="HTTPSampler.domain">localhost</stringProp>
+                <stringProp name="HTTPSampler.domain">${__P(host,localhost)}</stringProp>
                 <stringProp name="HTTPSampler.port">8081</stringProp>
                 <stringProp name="HTTPSampler.protocol">http</stringProp>
                 <stringProp name="HTTPSampler.path">api/v1/notifications</stringProp>
@@ -163,7 +165,7 @@ if (token != null &amp;&amp; manager != null) {
               </HTTPSamplerProxy>
               <hashTree/>
               <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="task list">
-                <stringProp name="HTTPSampler.domain">localhost</stringProp>
+                <stringProp name="HTTPSampler.domain">${__P(host,localhost)}</stringProp>
                 <stringProp name="HTTPSampler.port">8081</stringProp>
                 <stringProp name="HTTPSampler.protocol">http</stringProp>
                 <stringProp name="HTTPSampler.path">api/v1/tasks</stringProp>
@@ -177,7 +179,7 @@ if (token != null &amp;&amp; manager != null) {
               </HTTPSamplerProxy>
               <hashTree/>
               <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="inbox">
-                <stringProp name="HTTPSampler.domain">localhost</stringProp>
+                <stringProp name="HTTPSampler.domain">${__P(host,localhost)}</stringProp>
                 <stringProp name="HTTPSampler.port">8081</stringProp>
                 <stringProp name="HTTPSampler.protocol">http</stringProp>
                 <stringProp name="HTTPSampler.path">api/v1/conversations/inbox</stringProp>
@@ -191,7 +193,7 @@ if (token != null &amp;&amp; manager != null) {
               </HTTPSamplerProxy>
               <hashTree/>
             </hashTree>
-            <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="Throughput Controller">
+            <ThroughputController guiclass="ThroughputControllerGui" testclass="ThroughputController" testname="Throughput Controller" enabled="true">
               <intProp name="ThroughputController.style">1</intProp>
               <boolProp name="ThroughputController.perThread">false</boolProp>
               <intProp name="ThroughputController.maxThroughput">1</intProp>
@@ -202,7 +204,7 @@ if (token != null &amp;&amp; manager != null) {
               </FloatProperty>
             </ThroughputController>
             <hashTree>
-              <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="create tasks">
+              <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="create tasks" enabled="true">
                 <stringProp name="HTTPSampler.domain">localhost</stringProp>
                 <stringProp name="HTTPSampler.port">8081</stringProp>
                 <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -234,7 +236,7 @@ if (token != null &amp;&amp; manager != null) {
                 </elementProp>
               </HTTPSamplerProxy>
               <hashTree>
-                <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="check HTTP 201">
+                <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="check HTTP 201" enabled="true">
                   <collectionProp name="Asserion.test_strings">
                     <stringProp name="49587">201</stringProp>
                   </collectionProp>
@@ -245,7 +247,7 @@ if (token != null &amp;&amp; manager != null) {
                   <stringProp name="TestPlan.comments">task created successfully</stringProp>
                 </ResponseAssertion>
                 <hashTree/>
-                <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Check JSON Body">
+                <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Check JSON Body" enabled="true">
                   <collectionProp name="Asserion.test_strings">
                     <stringProp name="34624981">&quot;id&quot;:</stringProp>
                     <stringProp name="1164572482">&quot;posterId&quot;:</stringProp>
@@ -261,14 +263,14 @@ if (token != null &amp;&amp; manager != null) {
               </hashTree>
             </hashTree>
           </hashTree>
-          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Uniform Random Timer">
+          <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Uniform Random Timer" enabled="true">
             <stringProp name="ConstantTimer.delay">1000.0</stringProp>
             <stringProp name="RandomTimer.range">2000.0</stringProp>
           </UniformRandomTimer>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -305,7 +307,7 @@ if (token != null &amp;&amp; manager != null) {
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
+      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
