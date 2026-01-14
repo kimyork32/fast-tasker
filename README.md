@@ -1,4 +1,4 @@
-# Fast Tasker Backend
+# Fast Tasker
 
 ![Java](https://img.shields.io/badge/Java-21%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.1%2B-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
@@ -6,11 +6,43 @@
 ![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-D24939?style=for-the-badge&logo=jenkins&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-DDD%20%2F%20Clean%20Code-blueviolet?style=for-the-badge)
 
+## Team members
+- Coloma Yujra, Riki Santher
+- Rivera Torres, Jose Alberto
+- Miramira Bellido, Rimsky Augusto
+- Montañez Pacco, Roni Ezequiel
+
+## 📑 Table of Contents
+
+* [📖 Overview](#-overview)
+* [🎯 Project Purpose](#project-purpose)
+* [🧬 Domain Model](#domain-model)
+* [🏗 Architecture](#-architecture)
+    * [📦 Services and Components](#-services-and-components)
+* [🛣️ REST API Endpoints](#️-rest-api-endpoints)
+* [🔄 CI/CD Pipeline](#-cicd-pipeline)
+* [🚀 Prerequisites](#-prerequisites)
+* [🛠️ Installation and Setup](#️-installation-and-setup)
+    * [1. Clone the repository](#1-clone-the-repository)
+    * [2. Environment Variables Configuration](#2-environment-variables-configuration)
+    * [3. Running with Docker Compose](#3-running-with-docker-compose)
+    * [4. Service Access](#4-service-access)
+* [💻 Developer Guide (Manual Build)](#-developer-guide-manual-build)
+    * [1. Install Common Library](#1-install-common-library)
+    * [2. Run Monolith App](#2-run-monolith-app)
+    * [3. Run Notification Service](#3-run-notification-service)
+
 ## 📖 Overview
 
-This project is a backend system for a task management application, designed with a microservices architecture.
+This project is a system for a task management application, designed with a microservices architecture.
 
 This project is the result of migrating a monolithic system to a **Microservices** architecture. The ecosystem is designed following **Domain-Driven Design (DDD)** and **Clean Architecture** principles to ensure scalability, maintainability, and decoupling.
+
+## Project Purpose
+**Fast Tasker** is a service marketplace platform inspired by *Airtasker*. It connects users who need tasks done (**Posters**) with skilled individuals ready to do them (**Taskers**). The system facilitates the entire flow: from posting tasks and negotiating via offers, to real-time communication and reputation management.
+
+## Domain Model
+![DDD Domain Model](./monolith-app/docs/images/DDD-uml.png)
 
 ## 🏗 Architecture
 
@@ -36,6 +68,63 @@ The system uses a distributed architecture orchestrated via Docker Compose. Each
 | **SonarQube** | `ops` | `9000` | Platform for code quality and security analysis. |
 | **Client (Next.js)** | `frontend` | `3000` | Frontend client application. |
 
+## 🛣️ REST API Endpoints
+Below are the available operations per module.
+
+### 🔐 Module: Auth (Authentication)
+*Access management and base account registration.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/register` | Register new account | `RegisterAccountRequest` |
+| `POST` | `/api/v1/auth/login` | Login | `LoginRequest` |
+
+### 📋 Module: Task (Tasks & Offers)
+*Marketplace core: task lifecycle management.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/tasks` | Post a new task | `TaskRequest` |
+| `GET` | `/api/v1/tasks` | List active public tasks | - |
+| `GET` | `/api/v1/tasks/my-tasks` | List my posted tasks | *(Token)* |
+| `GET` | `/api/v1/tasks/{taskId}` | Get full task details | `taskId` |
+| `POST` | `/api/v1/tasks/{taskId}/offers` | Send an offer for a task | `OfferRequest` |
+| `GET` | `/api/v1/tasks/{taskId}/offers` | List received offers | `taskId` |
+| `POST` | `/api/v1/tasks/{taskId}/questions` | Post a question | `QuestionRequest` |
+| `GET` | `/api/v1/tasks/{taskId}/questions` | List questions | `taskId` |
+| `POST` | `/api/v1/tasks/{taskId}/answer` | Answer a question | `AnswerRequest` |
+
+### 💬 Module: Chat (Conversations)
+*Private messaging and real-time system.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/conversations/inbox` | Get inbox | *(Token)* |
+| `POST` | `/api/v1/conversations/start` | Start/Resume chat | `StartChatRequest` |
+| `GET` | `/api/v1/conversations/{id}/messages`| Get message history | `conversationId` |
+| `WS` | `/chat/.send` | Send message (WebSocket) | `MessageRequest` |
+
+### 👤 Module: Tasker (Profile)
+*Professional profile management.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `PUT` | `/api/v1/tasker/register` | Create/Update Tasker profile | `TaskerRequest` |
+| `GET` | `/api/v1/tasker/user/{userId}` | Get public profile | `userId` |
+| `GET` | `/api/v1/tasker/user/me` | Get my profile | *(Token)* |
+| `PUT` | `/api/v1/tasker/assign-tasker` | Assign task winner | `AssignTaskerRequest` |
+
+### 🔔 Module: Notification
+*Dedicated notification microservice.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/notifications` | Send notification (System) | `NotificationRequest` |
+| `GET` | `/api/v1/notifications` | Get my notifications | *(Token)* |
+
+
+
+
 ## 🔄 CI/CD Pipeline
 
 The project features a continuous integration pipeline defined in `Jenkinsfile` that automates the following stages:
@@ -47,6 +136,145 @@ The project features a continuous integration pipeline defined in `Jenkinsfile` 
 3.  **Staging Checks:** Runs on Pull Requests targeting `staging`.
     *   **Security Scan:** Vulnerability analysis (SAST/DAST).
     *   **Performance Tests:** Load and performance testing.
+
+### - Static Analysis
+```groovy
+  steps {
+        cleanWs()
+        unstash 'source-code' 
+        // build and install 'common' project
+        dir('common') {
+            sh 'mvn clean install -DskipTests'
+        }
+        dir('monolith-app') {
+            sh 'rm -rf .scannerwork target'
+            withSonarQubeEnv('sonar-server') {
+                withCredentials([file(credentialsId: 'fast-tasker-env', variable: 'ENV_FILE')]) {
+                    sh '''
+                        cp $ENV_FILE .env 
+                        sed -i 's/\r$//' .env
+                        set -a 
+                        . ./.env
+                        set +a
+                        mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                            -Dsonar.projectKey=fast-tasker-monolith \
+                            -Dsonar.projectName="Fast Tasker Monolith" \
+                            -Dsonar.ws.timeout=300
+                    '''
+                }
+            }
+```
+### - Unit Testing
+
+```groovy
+            dir('notification-service') {
+                sh 'rm -rf .scannerwork target'
+                withSonarQubeEnv('sonar-server') {
+                    withCredentials([file(credentialsId: 'fast-tasker-env', variable: 'ENV_FILE')]) {
+                        sh '''
+                            cp $ENV_FILE .env
+                            sed -i 's/\r$//' .env
+                            set -a 
+                            . ./.env
+                            set +a
+                            mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                                -Dsonar.projectKey=fast-tasker-notification \
+                                -Dsonar.projectName="Notification Service" \
+                                -Dsonar.ws.timeout=300
+                        '''
+                    }
+
+                }
+                // wait for qualitygate for notification service
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+```
+![](assets/unit.png)
+
+### - Security Testing and Performance Testing
+
+```groovy
+         parallel {
+                // security test
+                stage('Security Scan (SAST/DAST)') {
+                    when {
+                        expression { return params.RUN_SECURITY }
+                    }
+                    agent any
+                    steps {
+                        cleanWs()
+                        unstash 'source-code'
+                        echo "--- RUN SECURITY TEST ---"
+                        sh 'echo "Running Trivy or OWASP..."'
+                    }
+                }
+
+                // performance test
+                stage('Performance Tests') {
+                    when {
+                        expression { return params.RUN_PERFORMANCE }
+                    }
+                    agent any
+                    environment {
+                        SCRIPT_PATH = 'tests/performance/fasttasker2.jmx'
+                        RESULT_PATH = 'tests/performance/result.jtl'
+                        REPORT_DIR  = 'tests/performance/report-html'
+                        
+                        JMETER_VERSION = '5.6.3'
+                    }
+                    steps {
+                        cleanWs()
+                        unstash 'source-code'
+                        
+                        script {
+                            // install jmeter
+                            def jmeterDir = "/tmp/jmeter-${JMETER_VERSION}"
+                            def jmeterBin = "${jmeterDir}/bin/jmeter"
+                            
+                            if (!fileExists(jmeterBin)) {
+                                echo "Instalando JMeter en ${jmeterDir}..."
+                                sh "mkdir -p ${jmeterDir}"
+                                
+                                // download jmeter
+                                sh "curl -Lks https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz | tar -xz -C ${jmeterDir} --strip-components=1"
+                                
+                            } else {
+                                echo "using jmeter in cache"
+                            }
+                            
+                            // ejecute tests
+                            
+                            try {
+                                sh """
+                                    ${jmeterBin} -n \
+                                    -t ${SCRIPT_PATH} \
+                                    -Jhost=host.docker.internal \
+                                    -l ${RESULT_PATH} \
+                                    -e -o ${REPORT_DIR}
+                                """
+                            } catch (Exception e) {
+                                echo "finish"
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML target: [
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'tests/performance/report-html',
+                                reportFiles: 'index.html',
+                                reportName: 'Reporte Performance'
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+```
 
 ## 🚀 Prerequisites
 
