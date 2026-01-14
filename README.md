@@ -137,6 +137,145 @@ The project features a continuous integration pipeline defined in `Jenkinsfile` 
     *   **Security Scan:** Vulnerability analysis (SAST/DAST).
     *   **Performance Tests:** Load and performance testing.
 
+### - Static Analysis
+```groovy
+  steps {
+        cleanWs()
+        unstash 'source-code' 
+        // build and install 'common' project
+        dir('common') {
+            sh 'mvn clean install -DskipTests'
+        }
+        dir('monolith-app') {
+            sh 'rm -rf .scannerwork target'
+            withSonarQubeEnv('sonar-server') {
+                withCredentials([file(credentialsId: 'fast-tasker-env', variable: 'ENV_FILE')]) {
+                    sh '''
+                        cp $ENV_FILE .env 
+                        sed -i 's/\r$//' .env
+                        set -a 
+                        . ./.env
+                        set +a
+                        mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                            -Dsonar.projectKey=fast-tasker-monolith \
+                            -Dsonar.projectName="Fast Tasker Monolith" \
+                            -Dsonar.ws.timeout=300
+                    '''
+                }
+            }
+```
+### - Unit Testing
+
+```groovy
+            dir('notification-service') {
+                sh 'rm -rf .scannerwork target'
+                withSonarQubeEnv('sonar-server') {
+                    withCredentials([file(credentialsId: 'fast-tasker-env', variable: 'ENV_FILE')]) {
+                        sh '''
+                            cp $ENV_FILE .env
+                            sed -i 's/\r$//' .env
+                            set -a 
+                            . ./.env
+                            set +a
+                            mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                                -Dsonar.projectKey=fast-tasker-notification \
+                                -Dsonar.projectName="Notification Service" \
+                                -Dsonar.ws.timeout=300
+                        '''
+                    }
+
+                }
+                // wait for qualitygate for notification service
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+```
+![](assets/unit.png)
+
+### - Security Testing and Performance Testing
+
+```groovy
+         parallel {
+                // security test
+                stage('Security Scan (SAST/DAST)') {
+                    when {
+                        expression { return params.RUN_SECURITY }
+                    }
+                    agent any
+                    steps {
+                        cleanWs()
+                        unstash 'source-code'
+                        echo "--- RUN SECURITY TEST ---"
+                        sh 'echo "Running Trivy or OWASP..."'
+                    }
+                }
+
+                // performance test
+                stage('Performance Tests') {
+                    when {
+                        expression { return params.RUN_PERFORMANCE }
+                    }
+                    agent any
+                    environment {
+                        SCRIPT_PATH = 'tests/performance/fasttasker2.jmx'
+                        RESULT_PATH = 'tests/performance/result.jtl'
+                        REPORT_DIR  = 'tests/performance/report-html'
+                        
+                        JMETER_VERSION = '5.6.3'
+                    }
+                    steps {
+                        cleanWs()
+                        unstash 'source-code'
+                        
+                        script {
+                            // install jmeter
+                            def jmeterDir = "/tmp/jmeter-${JMETER_VERSION}"
+                            def jmeterBin = "${jmeterDir}/bin/jmeter"
+                            
+                            if (!fileExists(jmeterBin)) {
+                                echo "Instalando JMeter en ${jmeterDir}..."
+                                sh "mkdir -p ${jmeterDir}"
+                                
+                                // download jmeter
+                                sh "curl -Lks https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz | tar -xz -C ${jmeterDir} --strip-components=1"
+                                
+                            } else {
+                                echo "using jmeter in cache"
+                            }
+                            
+                            // ejecute tests
+                            
+                            try {
+                                sh """
+                                    ${jmeterBin} -n \
+                                    -t ${SCRIPT_PATH} \
+                                    -Jhost=host.docker.internal \
+                                    -l ${RESULT_PATH} \
+                                    -e -o ${REPORT_DIR}
+                                """
+                            } catch (Exception e) {
+                                echo "finish"
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML target: [
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'tests/performance/report-html',
+                                reportFiles: 'index.html',
+                                reportName: 'Reporte Performance'
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+```
+
 ## 🚀 Prerequisites
 
 *   **Java JDK 21**
