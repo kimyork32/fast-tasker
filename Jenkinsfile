@@ -160,12 +160,7 @@ pipeline {
                 stage('Performance Tests') {
                     agent any
                     environment {
-                        JMETER_VERSION = '5.6.3'
-                        // CAMBIO CLAVE: Usamos /tmp o una ruta fija del sistema, NO el workspace
-                        // Esto sobrevive al 'cleanWs()'
-                        JMETER_BASE_DIR = "/tmp/jenkins-tools" 
-                        JMETER_HOME = "${JMETER_BASE_DIR}/apache-jmeter-5.6.3"
-                        
+                        // Rutas relativas a la raíz del repo
                         SCRIPT_PATH = 'tests/performance/fasttasker.jmx'
                         RESULT_PATH = 'tests/performance/result.jtl'
                         REPORT_DIR  = 'tests/performance/report-html'
@@ -174,61 +169,41 @@ pipeline {
                         cleanWs()
                         unstash 'source-code'
                         
+                        echo "--- RUN PERFORMANCE TEST (DOCKER) ---"
+                        
                         script {
-                            // 1) instalaction in cache
-                            if (!fileExists("${JMETER_HOME}/bin/jmeter")) {
-                                echo "JMeter no encontrado en caché. Descargando..."
-                                
-                                // if no exists dir tools, then creating
-                                sh "mkdir -p ${JMETER_BASE_DIR}"
-                                
-                                // download and unzip
-                                dir("${JMETER_BASE_DIR}") {
-                                    def url = "https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz"
-                                    def file = "apache-jmeter-${JMETER_VERSION}.tgz"
-
-                                    sh "curl -fLk -o ${file} ${url}"
-                                    sh "ls -la"
-                                    sh "tar -xzf ${file}"
-                                    sh "rm ${file}"
-                                }
-                                
-                                sh "chmod +x ${JMETER_HOME}/bin/jmeter"
-                            } else {
-                                echo "good! jmeter in cache"
-                            }
-
+                            // 1. Limpieza preventiva
+                            sh "rm -rf ${RESULT_PATH} ${REPORT_DIR}"
                             
-                            // check if exists .jmx file
-                            if (!fileExists(SCRIPT_PATH)) {
-                                error "xml not found"
-                            }
-                            // 2) run
+                            // 2. Ejecución con Docker
                             try {
                                 sh """
-                                    ${JMETER_HOME}/bin/jmeter -n \
-                                    -t ${SCRIPT_PATH} \
-                                    -l ${RESULT_PATH} \
-                                    -e -o ${REPORT_dIR}
+                                    docker run --rm --network host \\
+                                    -v "${WORKSPACE}:${WORKSPACE}" \\
+                                    -w "${WORKSPACE}" \\
+                                    justb4/jmeter:5.5 \\
+                                    -Duser.timezone=America/Lima \\
+                                    -n -t ${SCRIPT_PATH} \\
+                                    -l ${RESULT_PATH} \\
+                                    -e -o ${REPORT_DIR}
                                 """
                             } catch (Exception e) {
-                                echo "test finish with umbral fails"
+                                echo "JMeter terminó con errores en los umbrales (lo esperado si hay fallos)."
                             }
+                            
+                            sh "sudo chown -R \$(id -u):\$(id -g) ${WORKSPACE}/tests/performance || true"
                         }
                     }
                     post {
                         always {
-                            // 3) publishing report in jenkins
-                            publishHTML target: [ // using HTML publisher pluging
+                            publishHTML target: [
                                 allowMissing: false,
                                 alwaysLinkToLastBuild: true,
                                 keepAll: true,
                                 reportDir: 'tests/performance/report-html',
                                 reportFiles: 'index.html',
-                                reportName: 'Reporte de Performance'
+                                reportName: 'JMeter Dashboard'
                             ]
-                            
-                            // save jtl
                             archiveArtifacts artifacts: '**/*.jtl', allowEmptyArchive: true
                         }
                     }
