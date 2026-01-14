@@ -1,4 +1,4 @@
-# Fast Tasker Backend
+# Fast Tasker
 
 ![Java](https://img.shields.io/badge/Java-21%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.1%2B-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
@@ -6,11 +6,42 @@
 ![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-D24939?style=for-the-badge&logo=jenkins&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-DDD%20%2F%20Clean%20Code-blueviolet?style=for-the-badge)
 
+## Team members
+- Coloma Yujra, Riki Santher
+- Rivera Torres, Jose Alberto
+- Miramira Bellido, Rimsky Augusto
+- Montañez Pacco, Roni Ezequiel
+
+## 📑 Table of Contents
+
+* [📖 Overview](#-overview)
+* [🎯 Project Purpose](#project-purpose)
+* [🧬 Domain Model](#domain-model)
+* [🏗 Architecture](#-architecture)
+    * [📦 Services and Components](#-services-and-components)
+* [🔄 CI/CD Pipeline](#-cicd-pipeline)
+* [🚀 Prerequisites](#-prerequisites)
+* [🛠️ Installation and Setup](#️-installation-and-setup)
+    * [1. Clone the repository](#1-clone-the-repository)
+    * [2. Environment Variables Configuration](#2-environment-variables-configuration)
+    * [3. Running with Docker Compose](#3-running-with-docker-compose)
+    * [4. Service Access](#4-service-access)
+* [💻 Developer Guide (Manual Build)](#-developer-guide-manual-build)
+    * [1. Install Common Library](#1-install-common-library)
+    * [2. Run Monolith App](#2-run-monolith-app)
+    * [3. Run Notification Service](#3-run-notification-service)
+
 ## 📖 Overview
 
-This project is a backend system for a task management application, designed with a microservices architecture.
+This project is a system for a task management application, designed with a microservices architecture.
 
 This project is the result of migrating a monolithic system to a **Microservices** architecture. The ecosystem is designed following **Domain-Driven Design (DDD)** and **Clean Architecture** principles to ensure scalability, maintainability, and decoupling.
+
+## Project Purpose
+**Fast Tasker** is a service marketplace platform inspired by *Airtasker*. It connects users who need tasks done (**Posters**) with skilled individuals ready to do them (**Taskers**). The system facilitates the entire flow: from posting tasks and negotiating via offers, to real-time communication and reputation management.
+
+## Domain Model
+![DDD Domain Model](./monolith-app/docs/images/DDD-uml.png)
 
 ## 🏗 Architecture
 
