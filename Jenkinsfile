@@ -184,7 +184,7 @@ pipeline {
                                 
                                 // download an unzip
                                 dir("${JMETER_BASE_DIR}") {
-                                    sh "wget -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz"
+                                    sh "curl -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz"
                                     sh "tar -xzf apache-jmeter-${JMETER_VERSION}.tgz"
                                     sh "rm apache-jmeter-${JMETER_VERSION}.tgz"
                                 }
