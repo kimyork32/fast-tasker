@@ -160,38 +160,54 @@ pipeline {
                 stage('Performance Tests') {
                     agent any
                     environment {
-                        // Rutas relativas a la raíz del repo
+                        // Rutas relativas en tu repo
                         SCRIPT_PATH = 'tests/performance/fasttasker.jmx'
                         RESULT_PATH = 'tests/performance/result.jtl'
                         REPORT_DIR  = 'tests/performance/report-html'
+                        
+                        // Variables para la instalación temporal
+                        JMETER_VERSION = '5.6.3'
                     }
                     steps {
                         cleanWs()
                         unstash 'source-code'
                         
-                        echo "--- RUN PERFORMANCE TEST (DOCKER) ---"
-                        
                         script {
-                            // 1. Limpieza preventiva
-                            sh "rm -rf ${RESULT_PATH} ${REPORT_DIR}"
+                            // --- PARTE 1: INSTALACIÓN SEGURA DE JMETER ---
+                            // Definimos una ruta temporal fuera del workspace para evitar problemas
+                            def jmeterDir = "/tmp/jmeter-${JMETER_VERSION}"
+                            def jmeterBin = "${jmeterDir}/bin/jmeter"
                             
-                            // 2. Ejecución con Docker
+                            if (!fileExists(jmeterBin)) {
+                                echo "🔧 Instalando JMeter en ${jmeterDir}..."
+                                sh "mkdir -p ${jmeterDir}"
+                                
+                                // Descargamos usando CURL (que sí tienes instalado)
+                                // -L: Seguir redirecciones, -k: Ignorar SSL, -s: Silencioso
+                                sh "curl -Lks https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz | tar -xz -C ${jmeterDir} --strip-components=1"
+                                
+                                echo "✅ JMeter instalado correctamente."
+                            } else {
+                                echo "⚡ Usando JMeter desde caché."
+                            }
+                            
+                            // --- PARTE 2: EJECUCIÓN DEL TEST ---
+                            echo "🚀 Ejecutando prueba de carga..."
+                            
+                            // TRUCO DE RED: Pasamos la propiedad 'host' a JMeter dinámicamente
+                            // Si tu backend está en el host, JMeter usará 'host.docker.internal'
+                            // Si falla, intenta cambiar 'host.docker.internal' por la IP de tu PC (ej. 192.168.1.X)
                             try {
                                 sh """
-                                    docker run --rm --network host \\
-                                    -v "${WORKSPACE}:${WORKSPACE}" \\
-                                    -w "${WORKSPACE}" \\
-                                    justb4/jmeter:5.5 \\
-                                    -Duser.timezone=America/Lima \\
-                                    -n -t ${SCRIPT_PATH} \\
-                                    -l ${RESULT_PATH} \\
+                                    ${jmeterBin} -n \
+                                    -t ${SCRIPT_PATH} \
+                                    -Jhost=host.docker.internal \
+                                    -l ${RESULT_PATH} \
                                     -e -o ${REPORT_DIR}
                                 """
                             } catch (Exception e) {
-                                echo "JMeter terminó con errores en los umbrales (lo esperado si hay fallos)."
+                                echo "⚠️ La prueba terminó con fallos (errores 500/400 o umbrales excedidos)."
                             }
-                            
-                            sh "sudo chown -R \$(id -u):\$(id -g) ${WORKSPACE}/tests/performance || true"
                         }
                     }
                     post {
@@ -202,9 +218,8 @@ pipeline {
                                 keepAll: true,
                                 reportDir: 'tests/performance/report-html',
                                 reportFiles: 'index.html',
-                                reportName: 'JMeter Dashboard'
+                                reportName: 'Reporte Performance'
                             ]
-                            archiveArtifacts artifacts: '**/*.jtl', allowEmptyArchive: true
                         }
                     }
                 }
