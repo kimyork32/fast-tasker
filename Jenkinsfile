@@ -1,6 +1,11 @@
 pipeline {
     agent none 
 
+    parameters {
+        booleanParam(name: 'RUN_SECURITY', defaultValue: true, description: 'Ejecutar escaneo de seguridad (ZAP/Trivy)')
+        booleanParam(name: 'RUN_PERFORMANCE', defaultValue: true, description: 'Ejecutar pruebas de carga (JMeter)')
+    }
+
     stages {
         // with any agent, clean enviroment and download repo github backend and save source-code
         stage('Setup Code') {
@@ -141,12 +146,18 @@ pipeline {
         stage('Staging Checks') {
             // when exists PR for STATING 
             when {
-                changeRequest target: 'staging'
+                anyOf {
+                    branch 'staging'
+                    changeRequest target: 'staging'
+                }
             }
             // in parallel:
             parallel {
                 // security test
                 stage('Security Scan (SAST/DAST)') {
+                    when {
+                        expression { return params.RUN_SECURITY }
+                    }
                     agent any
                     steps {
                         cleanWs()
@@ -158,14 +169,15 @@ pipeline {
 
                 // performance test
                 stage('Performance Tests') {
+                    when {
+                        expression { return params.RUN_PERFORMANCE }
+                    }
                     agent any
                     environment {
-                        // Rutas relativas en tu repo
                         SCRIPT_PATH = 'tests/performance/fasttasker2.jmx'
                         RESULT_PATH = 'tests/performance/result.jtl'
                         REPORT_DIR  = 'tests/performance/report-html'
                         
-                        // Variables para la instalación temporal
                         JMETER_VERSION = '5.6.3'
                     }
                     steps {
@@ -173,8 +185,7 @@ pipeline {
                         unstash 'source-code'
                         
                         script {
-                            // --- PARTE 1: INSTALACIÓN SEGURA DE JMETER ---
-                            // Definimos una ruta temporal fuera del workspace para evitar problemas
+                            // install jmeter
                             def jmeterDir = "/tmp/jmeter-${JMETER_VERSION}"
                             def jmeterBin = "${jmeterDir}/bin/jmeter"
                             
@@ -182,21 +193,15 @@ pipeline {
                                 echo "Instalando JMeter en ${jmeterDir}..."
                                 sh "mkdir -p ${jmeterDir}"
                                 
-                                // Descargamos usando CURL (que sí tienes instalado)
-                                // -L: Seguir redirecciones, -k: Ignorar SSL, -s: Silencioso
+                                // download jmeter
                                 sh "curl -Lks https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz | tar -xz -C ${jmeterDir} --strip-components=1"
                                 
-                                echo "JMeter instalado correctamente."
                             } else {
-                                echo "⚡ Usando JMeter desde caché."
+                                echo "using jmeter in cache"
                             }
                             
-                            // --- PARTE 2: EJECUCIÓN DEL TEST ---
-                            echo "Ejecutando prueba de carga..."
+                            // ejecute tests
                             
-                            // TRUCO DE RED: Pasamos la propiedad 'host' a JMeter dinámicamente
-                            // Si tu backend está en el host, JMeter usará 'host.docker.internal'
-                            // Si falla, intenta cambiar 'host.docker.internal' por la IP de tu PC (ej. 192.168.1.X)
                             try {
                                 sh """
                                     ${jmeterBin} -n \
@@ -206,7 +211,7 @@ pipeline {
                                     -e -o ${REPORT_DIR}
                                 """
                             } catch (Exception e) {
-                                echo "La prueba terminó con fallos (errores 500/400 o umbrales excedidos)."
+                                echo "finish"
                             }
                         }
                     }
