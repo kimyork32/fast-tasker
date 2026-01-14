@@ -191,6 +191,35 @@ The project features a continuous integration pipeline defined in `Jenkinsfile` 
                 }
             }
 ```
+
+```java
+
+    @BeforeEach
+    void setUp() {
+        task = mock(Task.class);
+    }
+
+    @Nested
+    @DisplayName("createTask()")
+    class CreateTask {
+        @Test
+        @DisplayName("Saves task and returns response")
+        void savesTaskWhenValid() {
+            TaskRequest request = mock(TaskRequest.class);
+            Task taskEntity = mock(Task.class);
+            TaskResponse response = mock(TaskResponse.class);
+
+            when(taskMapper.toTaskEntity(request, posterId)).thenReturn(taskEntity);
+            when(taskRepository.save(taskEntity)).thenReturn(taskEntity);
+            when(taskMapper.toResponse(taskEntity)).thenReturn(response);
+
+            var result = taskService.createTask(request, posterId);
+
+            assertThat(result).isEqualTo(response);
+            verify(taskRepository).save(taskEntity);
+        }
+    }
+```
 ![](assets/unit.png)
 
 ### - Security Testing and Performance Testing
