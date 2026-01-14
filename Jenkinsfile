@@ -182,11 +182,15 @@ pipeline {
                                 // if no exists dir tools, then creating
                                 sh "mkdir -p ${JMETER_BASE_DIR}"
                                 
-                                // download an unzip
+                                // download and unzip
                                 dir("${JMETER_BASE_DIR}") {
-                                    sh "curl -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz"
-                                    sh "tar -xzf apache-jmeter-${JMETER_VERSION}.tgz"
-                                    sh "rm apache-jmeter-${JMETER_VERSION}.tgz"
+                                    def url = "https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz"
+                                    def file = "apache-jmeter-${JMETER_VERSION}.tgz"
+
+                                    sh "curl -fLk -o ${file} ${url}"
+                                    sh "ls -la"
+                                    sh "tar -xzf ${file}"
+                                    sh "rm ${file}"
                                 }
                                 
                                 sh "chmod +x ${JMETER_HOME}/bin/jmeter"
@@ -194,13 +198,18 @@ pipeline {
                                 echo "good! jmeter in cache"
                             }
 
+                            
+                            // check if exists .jmx file
+                            if (!fileExists(SCRIPT_PATH)) {
+                                error "xml not found"
+                            }
                             // 2) run
                             try {
                                 sh """
                                     ${JMETER_HOME}/bin/jmeter -n \
                                     -t ${SCRIPT_PATH} \
                                     -l ${RESULT_PATH} \
-                                    -e -o ${REPORT_DIR}
+                                    -e -o ${REPORT_dIR}
                                 """
                             } catch (Exception e) {
                                 echo "test finish with umbral fails"
