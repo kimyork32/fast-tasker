@@ -1,8 +1,11 @@
 package com.fasttasker.fast_tasker.application.service;
 
+import com.fasttasker.common.config.RabbitMQConfig;
+import com.fasttasker.common.constant.RabbitMQConstants;
 import com.fasttasker.fast_tasker.application.dto.conversation.ConversationRequest;
 import com.fasttasker.fast_tasker.application.dto.conversation.MessageContentRequest;
 import com.fasttasker.fast_tasker.application.dto.conversation.MessageRequest;
+import com.fasttasker.fast_tasker.application.dto.notification.NotificationRequest;
 import com.fasttasker.fast_tasker.application.dto.task.AssignTaskerRequest;
 import com.fasttasker.fast_tasker.application.dto.task.AssignTaskerResponse;
 import com.fasttasker.fast_tasker.application.dto.tasker.TaskerRequest;
@@ -15,31 +18,34 @@ import com.fasttasker.fast_tasker.domain.task.Task;
 import com.fasttasker.fast_tasker.domain.tasker.ITaskerRepository;
 import com.fasttasker.fast_tasker.domain.tasker.Profile;
 import com.fasttasker.fast_tasker.domain.tasker.Tasker;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class TaskerService {
 
     private final ITaskerRepository taskerRepository;
     private final ITaskRepository taskRepository;
     private final TaskerMapper taskerMapper;
-    private final NotificationService notificationService;
+    private final RabbitTemplate rabbitTemplate;
     private final ConversationService conversationService;
 
     public TaskerService(
             ITaskerRepository taskerRepository,
             ITaskRepository taskRepository,
             TaskerMapper taskerMapper,
-            NotificationService notificationService,
+            RabbitTemplate rabbitTemplate,
             ConversationService conversationService
     ) {
         this.taskerRepository = taskerRepository;
         this.taskRepository = taskRepository;
         this.taskerMapper = taskerMapper;
-        this.notificationService = notificationService;
+        this.rabbitTemplate = rabbitTemplate;
         this.conversationService = conversationService;
     }
 
@@ -90,6 +96,8 @@ public class TaskerService {
         UUID taskerId = parseUuid(request.taskerId(), "taskerId");
         UUID offerId = parseUuid(request.offerId(), "offerId");
 
+        log.info("taskerId: {}", taskerId);
+
         Task task = taskRepository.findById(taskId);
 
         validatePosterOwnsTask(posterId, task);
@@ -129,7 +137,20 @@ public class TaskerService {
     }
 
     private void notifyOfferAccepted(UUID taskerId, UUID offerId) {
-        notificationService.sendNotification(taskerId, offerId, NotificationType.OFFER_ACCEPTED);
+        NotificationRequest request = new NotificationRequest(
+                taskerId,
+                offerId,
+                NotificationType.OFFER_ACCEPTED
+        );
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE_NAME,
+                    RabbitMQConstants.ROUTING_KEY_NOTIFICATION,
+                    request
+            );
+        } catch (Exception e) {
+            log.error("cannot send notification to RabbitMQ: {}", e.getMessage());
+        }
     }
 
     private UUID startPosterTaskerConversation(UUID taskId, UUID posterId, UUID taskerId) {

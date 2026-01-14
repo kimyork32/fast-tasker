@@ -7,7 +7,6 @@ import com.fasttasker.fast_tasker.application.dto.tasker.TaskerResponse;
 import com.fasttasker.fast_tasker.application.dto.tasker.ProfileResponse;
 import com.fasttasker.fast_tasker.application.mapper.TaskerMapper;
 import com.fasttasker.fast_tasker.application.service.ConversationService;
-import com.fasttasker.fast_tasker.application.service.NotificationService;
 import com.fasttasker.fast_tasker.application.service.TaskerService;
 import com.fasttasker.fast_tasker.domain.task.ITaskRepository;
 import com.fasttasker.fast_tasker.domain.tasker.ITaskerRepository;
@@ -20,8 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +45,7 @@ class TaskerServiceTest {
     private TaskerMapper taskerMapper;
 
     @Mock
-    private NotificationService notificationService;
+    private RabbitTemplate rabbitTemplate;
 
     @Mock
     private ConversationService conversationService;

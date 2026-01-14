@@ -2,7 +2,7 @@ package com.fasttasker.fast_tasker.web.controller;
 
 import com.fasttasker.fast_tasker.application.service.ConversationService;
 import com.fasttasker.fast_tasker.application.dto.conversation.*;
-import com.fasttasker.fast_tasker.config.JwtService;
+import com.fasttasker.common.config.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;

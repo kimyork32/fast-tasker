@@ -2,10 +2,9 @@ package com.fasttasker.fast_tasker.web.controller;
 
 import com.fasttasker.fast_tasker.application.dto.task.AssignTaskerResponse;
 import com.fasttasker.fast_tasker.application.dto.tasker.TaskerResponse;
-import com.fasttasker.fast_tasker.application.service.NotificationService;
 import com.fasttasker.fast_tasker.application.service.TaskerService;
 import com.fasttasker.fast_tasker.config.DataSeeder;
-import com.fasttasker.fast_tasker.config.JwtService;
+import com.fasttasker.common.config.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -41,9 +39,6 @@ class TaskerControllerTest {
 
     @MockBean
     private TaskerService taskerService;
-
-    @MockBean
-    private NotificationService notificationService;
 
     @MockBean
     private JwtService jwtService;
@@ -127,16 +122,6 @@ class TaskerControllerTest {
         mockMvc.perform(put("/api/v1/tasker/assign-tasker")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonRequest))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @WithMockUser
-    void shouldGetNotificationsByTaskerSuccess() throws Exception {
-        when(notificationService.getAll(accountId)).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get("/api/v1/tasker/notifications")
-                .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 }

@@ -1,14 +1,12 @@
 package com.fasttasker.fast_tasker.web.controller;
 
-import com.fasttasker.fast_tasker.application.service.NotificationService;
 import com.fasttasker.fast_tasker.application.service.TaskerService;
-import com.fasttasker.fast_tasker.application.dto.notification.NotificationResponse;
 import com.fasttasker.fast_tasker.application.dto.task.AssignTaskerRequest;
 import com.fasttasker.fast_tasker.application.dto.task.AssignTaskerResponse;
 import com.fasttasker.fast_tasker.application.dto.tasker.TaskerRegistrationResponse;
 import com.fasttasker.fast_tasker.application.dto.tasker.TaskerRequest;
 import com.fasttasker.fast_tasker.application.dto.tasker.TaskerResponse;
-import com.fasttasker.fast_tasker.config.JwtService;
+import com.fasttasker.common.config.JwtService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,16 +26,14 @@ import java.util.UUID;
 public class TaskerController {
 
     private final TaskerService taskerService;
-    private final NotificationService notificationService;
     private final JwtService jwtService;
 
     /**
      * constructor for dependencies injection
      */
     @Autowired
-    public TaskerController(TaskerService taskerService, NotificationService notificationService, JwtService jwtService) {
+    public TaskerController(TaskerService taskerService, JwtService jwtService) {
         this.taskerService = taskerService;
-        this.notificationService = notificationService;
         this.jwtService = jwtService;
     }
 
@@ -87,10 +83,4 @@ public class TaskerController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/notifications")
-    public ResponseEntity<List<NotificationResponse>> getNotificationsByTasker(Authentication authentication) {
-        UUID accountId = jwtService.extractAccountId(authentication);
-        List<NotificationResponse> notifications = notificationService.getAll(accountId);
-        return ResponseEntity.ok(notifications);
-    }
 }

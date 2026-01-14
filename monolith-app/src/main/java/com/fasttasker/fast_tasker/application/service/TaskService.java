@@ -19,7 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.fasttasker.fast_tasker.application.exception.DomainException;
+import com.fasttasker.common.exception.DomainException;
 
 /**
  * Service to handle Task business logic
