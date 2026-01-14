@@ -1,0 +1,16 @@
+node_modules
+.next
+.vscode
+.env.local
+.env.*
+dist
+build
+.DS_Store
+.git
+.gitignore
+npm-debug.log
+coverage
+.idea
+
+# Ignore local env in case
+.env
