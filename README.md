@@ -68,7 +68,7 @@ The system uses a distributed architecture orchestrated via Docker Compose. Each
 | **SonarQube** | `ops` | `9000` | Platform for code quality and security analysis. |
 | **Client (Next.js)** | `frontend` | `3000` | Frontend client application. |
 
-## Modules and REST Services
+## 🛣️ REST API Endpoints
 Below are the available operations per module.
 
 ### 🔐 Module: Auth (Authentication)
