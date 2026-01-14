@@ -67,6 +67,63 @@ The system uses a distributed architecture orchestrated via Docker Compose. Each
 | **SonarQube** | `ops` | `9000` | Platform for code quality and security analysis. |
 | **Client (Next.js)** | `frontend` | `3000` | Frontend client application. |
 
+## Modules and REST Services
+Below are the available operations per module.
+
+### 🔐 Module: Auth (Authentication)
+*Access management and base account registration.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/register` | Register new account | `RegisterAccountRequest` |
+| `POST` | `/api/v1/auth/login` | Login | `LoginRequest` |
+
+### 📋 Module: Task (Tasks & Offers)
+*Marketplace core: task lifecycle management.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/tasks` | Post a new task | `TaskRequest` |
+| `GET` | `/api/v1/tasks` | List active public tasks | - |
+| `GET` | `/api/v1/tasks/my-tasks` | List my posted tasks | *(Token)* |
+| `GET` | `/api/v1/tasks/{taskId}` | Get full task details | `taskId` |
+| `POST` | `/api/v1/tasks/{taskId}/offers` | Send an offer for a task | `OfferRequest` |
+| `GET` | `/api/v1/tasks/{taskId}/offers` | List received offers | `taskId` |
+| `POST` | `/api/v1/tasks/{taskId}/questions` | Post a question | `QuestionRequest` |
+| `GET` | `/api/v1/tasks/{taskId}/questions` | List questions | `taskId` |
+| `POST` | `/api/v1/tasks/{taskId}/answer` | Answer a question | `AnswerRequest` |
+
+### 💬 Module: Chat (Conversations)
+*Private messaging and real-time system.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/conversations/inbox` | Get inbox | *(Token)* |
+| `POST` | `/api/v1/conversations/start` | Start/Resume chat | `StartChatRequest` |
+| `GET` | `/api/v1/conversations/{id}/messages`| Get message history | `conversationId` |
+| `WS` | `/chat/.send` | Send message (WebSocket) | `MessageRequest` |
+
+### 👤 Module: Tasker (Profile)
+*Professional profile management.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `PUT` | `/api/v1/tasker/register` | Create/Update Tasker profile | `TaskerRequest` |
+| `GET` | `/api/v1/tasker/user/{userId}` | Get public profile | `userId` |
+| `GET` | `/api/v1/tasker/user/me` | Get my profile | *(Token)* |
+| `PUT` | `/api/v1/tasker/assign-tasker` | Assign task winner | `AssignTaskerRequest` |
+
+### 🔔 Module: Notification
+*Dedicated notification microservice.*
+
+| Method | URL | Description | Parameters / Body |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/notifications` | Send notification (System) | `NotificationRequest` |
+| `GET` | `/api/v1/notifications` | Get my notifications | *(Token)* |
+
+
+
+
 ## 🔄 CI/CD Pipeline
 
 The project features a continuous integration pipeline defined in `Jenkinsfile` that automates the following stages:
