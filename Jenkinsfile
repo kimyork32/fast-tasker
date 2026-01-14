@@ -37,7 +37,7 @@ pipeline {
                     // rule: to 'staging' only enters 'develop'
                     if (env.CHANGE_TARGET == 'staging') {
                         // if (env.CHANGE_BRANCH != 'develop') {
-                        if (env.CHANGE_BRANCH != 'feat/noti') { // changing this
+                        if (env.CHANGE_BRANCH != 'task51-perfomance') { // changing this
                             error "BLOCk!!: to 'staging' enters 'develop'"
 
                         }
@@ -159,11 +159,69 @@ pipeline {
                 // performance test
                 stage('Performance Tests') {
                     agent any
+                    environment {
+                        JMETER_VERSION = '5.6.3'
+                        // CAMBIO CLAVE: Usamos /tmp o una ruta fija del sistema, NO el workspace
+                        // Esto sobrevive al 'cleanWs()'
+                        JMETER_BASE_DIR = "/tmp/jenkins-tools" 
+                        JMETER_HOME = "${JMETER_BASE_DIR}/apache-jmeter-5.6.3"
+                        
+                        SCRIPT_PATH = 'tests/performance/fasttasker.jmx'
+                        RESULT_PATH = 'tests/performance/result.jtl'
+                        REPORT_DIR  = 'tests/performance/report-html'
+                    }
                     steps {
                         cleanWs()
                         unstash 'source-code'
-                        echo "--- RUN PERFORMANCE TEST ---"
-                        sh 'echo "Running k6 / JMeter tests..."'
+                        
+                        script {
+                            // 1) instalaction in cache
+                            if (!fileExists("${JMETER_HOME}/bin/jmeter")) {
+                                echo "JMeter no encontrado en caché. Descargando..."
+                                
+                                // if no exists dir tools, then creating
+                                sh "mkdir -p ${JMETER_BASE_DIR}"
+                                
+                                // download an unzip
+                                dir("${JMETER_BASE_DIR}") {
+                                    sh "wget -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz"
+                                    sh "tar -xzf apache-jmeter-${JMETER_VERSION}.tgz"
+                                    sh "rm apache-jmeter-${JMETER_VERSION}.tgz"
+                                }
+                                
+                                sh "chmod +x ${JMETER_HOME}/bin/jmeter"
+                            } else {
+                                echo "good! jmeter in cache"
+                            }
+
+                            // 2) run
+                            try {
+                                sh """
+                                    ${JMETER_HOME}/bin/jmeter -n \
+                                    -t ${SCRIPT_PATH} \
+                                    -l ${RESULT_PATH} \
+                                    -e -o ${REPORT_DIR}
+                                """
+                            } catch (Exception e) {
+                                echo "test finish with umbral fails"
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            // 3) publishing report in jenkins
+                            publishHTML target: [ // using HTML publisher pluging
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'tests/performance/report-html',
+                                reportFiles: 'index.html',
+                                reportName: 'Reporte de Performance'
+                            ]
+                            
+                            // save jtl
+                            archiveArtifacts artifacts: '**/*.jtl', allowEmptyArchive: true
+                        }
                     }
                 }
             }
