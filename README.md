@@ -19,6 +19,7 @@
 * [🧬 Domain Model](#domain-model)
 * [🏗 Architecture](#-architecture)
     * [📦 Services and Components](#-services-and-components)
+* [🛣️ REST API Endpoints](#️-rest-api-endpoints)
 * [🔄 CI/CD Pipeline](#-cicd-pipeline)
 * [🚀 Prerequisites](#-prerequisites)
 * [🛠️ Installation and Setup](#️-installation-and-setup)
