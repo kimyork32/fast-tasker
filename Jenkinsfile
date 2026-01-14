@@ -1,6 +1,11 @@
 pipeline {
     agent none 
 
+    parameters {
+        booleanParam(name: 'RUN_SECURITY', defaultValue: true, description: 'Ejecutar escaneo de seguridad (ZAP/Trivy)')
+        booleanParam(name: 'RUN_PERFORMANCE', defaultValue: true, description: 'Ejecutar pruebas de carga (JMeter)')
+    }
+
     stages {
         // with any agent, clean enviroment and download repo github backend and save source-code
         stage('Setup Code') {
@@ -37,7 +42,7 @@ pipeline {
                     // rule: to 'staging' only enters 'develop'
                     if (env.CHANGE_TARGET == 'staging') {
                         // if (env.CHANGE_BRANCH != 'develop') {
-                        if (env.CHANGE_BRANCH != 'feat/noti') { // changing this
+                        if (env.CHANGE_BRANCH != 'task51-perfomance') { // changing this
                             error "BLOCk!!: to 'staging' enters 'develop'"
 
                         }
@@ -141,12 +146,18 @@ pipeline {
         stage('Staging Checks') {
             // when exists PR for STATING 
             when {
-                changeRequest target: 'staging'
+                anyOf {
+                    branch 'staging'
+                    changeRequest target: 'staging'
+                }
             }
             // in parallel:
             parallel {
                 // security test
                 stage('Security Scan (SAST/DAST)') {
+                    when {
+                        expression { return params.RUN_SECURITY }
+                    }
                     agent any
                     steps {
                         cleanWs()
@@ -158,12 +169,63 @@ pipeline {
 
                 // performance test
                 stage('Performance Tests') {
+                    when {
+                        expression { return params.RUN_PERFORMANCE }
+                    }
                     agent any
+                    environment {
+                        SCRIPT_PATH = 'tests/performance/fasttasker2.jmx'
+                        RESULT_PATH = 'tests/performance/result.jtl'
+                        REPORT_DIR  = 'tests/performance/report-html'
+                        
+                        JMETER_VERSION = '5.6.3'
+                    }
                     steps {
                         cleanWs()
                         unstash 'source-code'
-                        echo "--- RUN PERFORMANCE TEST ---"
-                        sh 'echo "Running k6 / JMeter tests..."'
+                        
+                        script {
+                            // install jmeter
+                            def jmeterDir = "/tmp/jmeter-${JMETER_VERSION}"
+                            def jmeterBin = "${jmeterDir}/bin/jmeter"
+                            
+                            if (!fileExists(jmeterBin)) {
+                                echo "Instalando JMeter en ${jmeterDir}..."
+                                sh "mkdir -p ${jmeterDir}"
+                                
+                                // download jmeter
+                                sh "curl -Lks https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz | tar -xz -C ${jmeterDir} --strip-components=1"
+                                
+                            } else {
+                                echo "using jmeter in cache"
+                            }
+                            
+                            // ejecute tests
+                            
+                            try {
+                                sh """
+                                    ${jmeterBin} -n \
+                                    -t ${SCRIPT_PATH} \
+                                    -Jhost=host.docker.internal \
+                                    -l ${RESULT_PATH} \
+                                    -e -o ${REPORT_DIR}
+                                """
+                            } catch (Exception e) {
+                                echo "finish"
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML target: [
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'tests/performance/report-html',
+                                reportFiles: 'index.html',
+                                reportName: 'Reporte Performance'
+                            ]
+                        }
                     }
                 }
             }
