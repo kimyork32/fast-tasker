@@ -1,0 +1,54 @@
+server:
+  port: ${GATEWAY_PORT} # port for api-gateway
+
+spring:
+  config: 
+    import: "optional:file:../.env[.properties]" # load the .env file from the root
+
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      default-filters: # disable CORS temporally. Remove CORS in microservices (before monolith will be empty)
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+      # CORS config
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "${CLIENT_URL}:${CLIENT_PORT}" # URL frontend and PORT
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+      routes:
+        # Monolith
+        - id: monolith
+          uri: "${MONOLITH_URI:http://127.0.0.1}:${MONOLITH_PORT}"
+          # allowed routes:
+          predicates:
+            - Path=/api/v1/auth/**,/api/v1/tasker/**,/api/v1/tasks/**,/api/v1/accounts/**,/api/v1/conversations/**
+
+        # notification-service
+        - id: notification-service
+          uri: "${NOTIFICATION_URI:http://127.0.0.1}:${NOTIFICATION_PORT}"
+          predicates:
+            - Path=/api/v1/notifications/**
+
+        # WEBSOCKETS
+        # chat route
+        - id: websocket-chat-service
+          uri: "${WEBSOCKET_URI:http://127.0.0.1}:${MONOLITH_PORT}"
+          predicates:
+            - Path=/ws/chat/**
+
+        # notification route
+        - id: websocket-notification-service
+          uri: "${WEBSOCKET_URI:http://127.0.0.1}:${NOTIFICATION_PORT}"
+          predicates:
+            - Path=/ws/notifications/**

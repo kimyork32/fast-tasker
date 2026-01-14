@@ -2,7 +2,9 @@
 # NOTE: "docker compose up -d" exec only profile "default" (it is not implicitly stated)
 # if you only want to up the db and RabbitMQ, exec: docker compose up -d db rabbitmq
 # bring up only client ("frontend" profile): docker compose --profile frontend up
+# bring up only jenkins and sonarqube (operations) ("ops" profile): docker compose --profile ops up
 # if you want to run the backend, exec: docker compose up -d backend notification-service <other-services>
+#
 # delete containers, volumens and networks, exec: docker compose down -v
 
 services:

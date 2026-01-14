@@ -55,18 +55,17 @@ public class NotificationService {
                 "/topic/notifications/" + receiverTaskerId,
                 notificationMapper.toNotificationResponse(savedNotification)
         );
-
     }
 
     /**
-     * @param taskerId
+     * @param taskerId user id
      */
     public void getUnread(UUID taskerId) {
         // TODO implement here
     }
 
     /**
-     * @param notificationId
+     * @param notificationId notification id
      */
     public void markAsRead(UUID notificationId) {
         // TODO implement here

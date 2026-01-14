@@ -11,6 +11,40 @@ pipeline {
                 stash name: 'source-code', includes: '**' 
             }
         }
+
+        // branch validator 
+        stage('branch validator of the merge') {
+            // only run this if it's a PR
+            when { 
+                changeRequest() 
+            }
+            steps {
+                script {
+                    echo "analyzing PR from '${env.CHANGE_BRANCH}' to '${env.CHANGE_TARGET}'"
+
+                    // rule: any branch except main or staging can be included in 'develop'
+                    if (env.CHANGE_TARGET == 'develop') {
+                        if (env.CHANGE_BRANCH == 'main') {
+                            error "BLOCk!!: 'main' cannot enter 'develop'"
+
+                        }
+                        if (env.CHANGE_BRANCH == 'staging') {
+                            error "BLOCk!!: 'staging' cannot enter 'develop'"
+
+                        }
+                    }
+
+                    // rule: to 'staging' only enters 'develop'
+                    if (env.CHANGE_TARGET == 'staging') {
+                        // if (env.CHANGE_BRANCH != 'develop') {
+                        if (env.CHANGE_BRANCH != 'feat/noti') { // changing this
+                            error "BLOCk!!: to 'staging' enters 'develop'"
+
+                        }
+                    }
+                }
+            }
+        }
         
         // flow DEVELOP
         stage('CI Flow (Develop)') {
@@ -47,9 +81,16 @@ pipeline {
                                                 set -a 
                                                 . ./.env
                                                 set +a
-                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-monolith -Dsonar.ws.timeout=300
+                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                                                    -Dsonar.projectKey=fast-tasker-monolith \
+                                                    -Dsonar.projectName="Fast Tasker Monolith" \
+                                                    -Dsonar.ws.timeout=300
                                             '''
                                         }
+                                    }
+                                    // wait for qualitygate for monolith
+                                    timeout(time: 10, unit: 'MINUTES') {
+                                        waitForQualityGate abortPipeline: true
                                     }
                                 }
                             }
@@ -76,22 +117,20 @@ pipeline {
                                                 set -a 
                                                 . ./.env
                                                 set +a
-                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=fast-tasker-notification -Dsonar.ws.timeout=300
+                                                mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                                                    -Dsonar.projectKey=fast-tasker-notification \
+                                                    -Dsonar.projectName="Notification Service" \
+                                                    -Dsonar.ws.timeout=300
                                             '''
                                         }
+
+                                    }
+                                    // wait for qualitygate for notification service
+                                    timeout(time: 10, unit: 'MINUTES') {
+                                        waitForQualityGate abortPipeline: true
                                     }
                                 }
                             }
-                        }
-                    }
-                }
-                
-                // listen quality gate from sonarqube
-                stage('Quality Gate') {
-                    agent any 
-                    steps {
-                        timeout(time: 10, unit: 'MINUTES') {
-                            waitForQualityGate abortPipeline: true
                         }
                     }
                 }
